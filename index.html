@@ -29,7 +29,7 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrEqL8JKIWLypa555me-lQDb761dnX4jBm5rENvi6hdj03vFSp4IEk7CZ2OE3E93gRKQ/exec";
   </script>
 
-  <!-- CABECERA -->
+  <!-- CABECERA INSTITUCIONAL -->
   <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 px-4 py-3">
     <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -41,35 +41,67 @@
         </p>
       </div>
       
-      <!-- CONTROLES -->
+      <!-- CONTROLES SUPERIORES -->
       <div class="flex flex-wrap items-center gap-2">
+        <button onclick="alternarMapa()" id="btnToggleMapa" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+          <span>🗺️</span>
+          <span id="btnToggleMapaTexto">Ver Mapa Interactivo</span>
+        </button>
+
         <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
           <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
-          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer max-w-[180px] truncate"></select>
+          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer max-w-[170px] truncate"></select>
         </div>
 
         <button onclick="abrirModalNuevaZona()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          ➕ <span>Agregar Zona</span>
+          ➕ <span>Zona</span>
         </button>
 
         <button onclick="abrirModalEdicion()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          ✏️ <span>Editar Semana</span>
+          ✏️ <span>Editar</span>
         </button>
 
-        <button onclick="cargarDatos()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          🔄 <span id="syncText">Sincronizar</span>
+        <button onclick="forzarSincronizacion()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
+          🔄 <span id="syncText">En Línea</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- CONTENIDO -->
-  <main class="max-w-6xl mx-auto w-full p-4 flex-1">
+  <!-- SECCIÓN VISOR CANVA -->
+  <section id="seccionMapaCanva" class="hidden max-w-6xl mx-auto w-full p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🗺️</span>
+          <h2 class="text-lg font-black uppercase text-slate-900">Mapa Territorial Interactivo • Ambiente y GIRSU</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" target="_blank" rel="noopener noreferrer" class="text-xs font-bold uppercase text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
+            Abrir en pestaña nueva ↗
+          </a>
+        </div>
+      </div>
+      
+      <div class="relative w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-950 shadow-inner" style="padding-top: 56.25%;">
+        <iframe 
+          id="iframeCanva"
+          src="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" 
+          class="absolute top-0 left-0 w-full h-full border-0"
+          allowfullscreen="true" 
+          allow="fullscreen"
+          loading="lazy">
+        </iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENIDO FICHA TÉCNICA -->
+  <main id="seccionFichaTecnica" class="max-w-6xl mx-auto w-full p-4 flex-1">
     
-    <!-- HEADER ZONA ADAPTABLE (SIN DESBORDES) -->
+    <!-- HEADER ZONA -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-4 min-w-0 flex-1">
-        <!-- Badge inteligente: tamaño flexible y texto proporcionado -->
         <div id="badgeZona" class="h-16 min-w-[4rem] max-w-[8rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap">
           46
         </div>
@@ -145,7 +177,7 @@
     </div>
   </main>
 
-  <!-- MODAL: AGREGAR NUEVA ZONA -->
+  <!-- MODAL NUEVA ZONA -->
   <div id="modalNuevaZona" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
@@ -180,17 +212,13 @@
       </div>
 
       <div class="border-t pt-4 mt-5 flex items-center justify-between">
-        <button onclick="cerrarModalNuevaZona()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">
-          Cancelar
-        </button>
-        <button onclick="guardarNuevaZona()" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow">
-          Crear Zona
-        </button>
+        <button onclick="cerrarModalNuevaZona()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">Cancelar</button>
+        <button onclick="guardarNuevaZona()" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow">Crear Zona</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: EDITAR DÍAS -->
+  <!-- MODAL EDITAR SEMANA -->
   <div id="modalEdicion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
@@ -204,9 +232,7 @@
       <div class="overflow-y-auto flex-1 pr-1 space-y-3" id="formularioEdicionDias"></div>
 
       <div class="border-t pt-4 mt-4 flex items-center justify-between">
-        <button onclick="cerrarModalEdicion()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">
-          Cancelar
-        </button>
+        <button onclick="cerrarModalEdicion()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">Cancelar</button>
         <button onclick="guardarCambiosEnSheet()" id="btnGuardarSheet" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-2">
           <span>Guardar en Google Sheets</span>
         </button>
@@ -214,32 +240,39 @@
     </div>
   </div>
 
+  <!-- LÓGICA ULTRA RÁPIDA (STALE-WHILE-REVALIDATE) -->
   <script>
     let baseDatos = [];
     let zonaActual = "46";
     let vistaActual = "semana1";
+    let mapaAbierto = false;
 
     const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
     const CONFIG_TURNOS = {
-      "Mañana": {
-        bgBadge: "bg-[#E65757]",
-        textBadge: "bg-rose-50 text-[#C93B3B] border border-rose-200",
-        horario: "Entre las 05 y las 08 hs"
-      },
-      "Tarde": {
-        bgBadge: "bg-[#0F9D58]",
-        textBadge: "bg-emerald-50 text-[#0F9D58] border border-emerald-200",
-        horario: "Entre las 12 y las 15 hs"
-      },
-      "Noche": {
-        bgBadge: "bg-[#00A8CC]",
-        textBadge: "bg-sky-50 text-[#0088A8] border border-sky-200",
-        horario: "Entre las 19 y las 22 hs"
-      }
+      "Mañana": { bgBadge: "bg-[#E65757]", textBadge: "bg-rose-50 text-[#C93B3B] border border-rose-200", horario: "Entre las 05 y las 08 hs" },
+      "Tarde": { bgBadge: "bg-[#0F9D58]", textBadge: "bg-emerald-50 text-[#0F9D58] border border-emerald-200", horario: "Entre las 12 y las 15 hs" },
+      "Noche": { bgBadge: "bg-[#00A8CC]", textBadge: "bg-sky-50 text-[#0088A8] border border-sky-200", horario: "Entre las 19 y las 22 hs" }
     };
 
-    // FUNCIÓN PARA LIMPIAR TEXTO (%20 -> espacio)
+    function alternarMapa() {
+      mapaAbierto = !mapaAbierto;
+      const seccionMapa = document.getElementById("seccionMapaCanva");
+      const btnTexto = document.getElementById("btnToggleMapaTexto");
+      const btn = document.getElementById("btnToggleMapa");
+
+      if (mapaAbierto) {
+        seccionMapa.classList.remove("hidden");
+        btnTexto.innerText = "Ocultar Mapa";
+        btn.classList.replace("bg-indigo-600", "bg-indigo-800");
+        seccionMapa.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        seccionMapa.classList.add("hidden");
+        btnTexto.innerText = "Ver Mapa Interactivo";
+        btn.classList.replace("bg-indigo-800", "bg-indigo-600");
+      }
+    }
+
     function limpiarTexto(txt) {
       if (!txt) return "";
       try {
@@ -249,12 +282,36 @@
       }
     }
 
-    async function cargarDatos() {
+    // 1. INICIALIZACIÓN INSTANTÁNEA (0 SEGUNDOS)
+    function iniciarAppInstantanea() {
+      leerHashURL();
+      const cacheLocal = localStorage.getItem("quilmes_datos_cache");
+      
+      if (cacheLocal) {
+        try {
+          baseDatos = JSON.parse(cacheLocal);
+          poblarSelectorZonas();
+          renderizarVista();
+        } catch (e) {
+          generarPlantillaBase();
+        }
+      } else {
+        generarPlantillaBase();
+        poblarSelectorZonas();
+        renderizarVista();
+      }
+
+      // Sincroniza en background sin bloquear la pantalla
+      sincronizarSegundoPlano();
+    }
+
+    // 2. SINCRONIZACIÓN EN SEGUNDO PLANO
+    async function sincronizarSegundoPlano(esForzado = false) {
       const syncText = document.getElementById("syncText");
-      syncText.innerText = "Cargando...";
+      if (esForzado) syncText.innerText = "Actualizando...";
 
       try {
-        const respuesta = await fetch(APPS_SCRIPT_URL);
+        const respuesta = await fetch(APPS_SCRIPT_URL, { cache: "no-store" });
         const data = await respuesta.json();
         
         if (Array.isArray(data) && data.length > 0) {
@@ -264,26 +321,18 @@
             Nombre: limpiarTexto(d.Nombre)
           }));
           localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
+          poblarSelectorZonas();
+          renderizarVista();
           syncText.innerText = "En Línea";
-        } else {
-          generarPlantillaBase();
-          syncText.innerText = "Inicial";
         }
       } catch (err) {
-        console.warn("Error leyendo Sheet:", err);
-        const cache = localStorage.getItem("quilmes_datos_cache");
-        if (cache) {
-          baseDatos = JSON.parse(cache);
-          syncText.innerText = "Modo Local";
-        } else {
-          generarPlantillaBase();
-          syncText.innerText = "Datos Base";
-        }
+        console.warn("Sync background:", err);
+        syncText.innerText = "Modo Local";
       }
+    }
 
-      poblarSelectorZonas();
-      leerHashURL();
-      renderizarVista();
+    function forzarSincronizacion() {
+      sincronizarSegundoPlano(true);
     }
 
     function generarPlantillaBase() {
@@ -306,7 +355,7 @@
               Turno: z.turno,
               Semana: `Semana ${s}`,
               Dia: d,
-              Toneladas: 3.5,
+              Toneladas: 0,
               CuadrasFaltantes: 0,
               CuadrasTotales: 120,
               Novedades: ""
@@ -367,7 +416,6 @@
 
       const conf = CONFIG_TURNOS[regBase.Turno] || CONFIG_TURNOS["Mañana"];
 
-      // AJUSTE DINÁMICO DEL BADGE (SEGÚN LARGO DEL TEXTO)
       const badgeElem = document.getElementById("badgeZona");
       badgeElem.innerText = zonaActual;
       
@@ -452,7 +500,7 @@
         : "Sin novedades registradas ni reclamos de cuadras pendientes.";
     }
 
-    // AGREGAR ZONA
+    // MODAL AGREGAR ZONA
     function abrirModalNuevaZona() {
       document.getElementById("nuevaZonaNum").value = "";
       document.getElementById("nuevaZonaNombre").value = "";
@@ -496,19 +544,16 @@
       cambiarZona(num);
       cerrarModalNuevaZona();
 
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(baseDatos)
-        });
-      } catch (e) {
-        console.warn("Zona guardada localmente.");
-      }
+      // Guardado asíncrono
+      fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(baseDatos)
+      }).catch(e => console.warn("Guardado diferido"));
     }
 
-    // EDITAR SEMANA
+    // MODAL EDITAR SEMANA
     function abrirModalEdicion() {
       if (vistaActual === "total") {
         alert("Selecciona una semana específica (Semana 1 a 4) para editar los días.");
@@ -561,7 +606,7 @@
 
     async function guardarCambiosEnSheet() {
       const btn = document.getElementById("btnGuardarSheet");
-      btn.innerText = "Guardando en Sheet...";
+      btn.innerText = "Guardando...";
       btn.disabled = true;
 
       const numSemana = vistaActual.replace("semana", "");
@@ -584,9 +629,14 @@
         }
       });
 
+      // Impacto visual instantáneo en pantalla
       localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
       renderizarVista();
+      cerrarModalEdicion();
+      btn.disabled = false;
+      btn.innerText = "Guardar en Google Sheets";
 
+      // Envío de fondo a Google Sheets
       try {
         await fetch(APPS_SCRIPT_URL, {
           method: "POST",
@@ -594,20 +644,12 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(baseDatos)
         });
-        btn.innerText = "¡Guardado exitoso!";
-        setTimeout(() => {
-          btn.innerText = "Guardar en Google Sheets";
-          btn.disabled = false;
-          cerrarModalEdicion();
-        }, 1000);
       } catch (err) {
-        console.error("Error al guardar en Sheet:", err);
-        btn.innerText = "Guardado local (Fallo red)";
-        btn.disabled = false;
+        console.error("Error envío background:", err);
       }
     }
 
-    window.addEventListener("DOMContentLoaded", cargarDatos);
+    window.addEventListener("DOMContentLoaded", iniciarAppInstantanea);
     window.addEventListener("hashchange", () => {
       leerHashURL();
       renderizarVista();
