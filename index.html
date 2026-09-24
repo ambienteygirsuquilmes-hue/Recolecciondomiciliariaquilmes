@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Librería SheetJS para procesar Excel y CSV de ODIN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -21,16 +24,29 @@
       }
     }
   </script>
+
+  <style>
+    @media print {
+      body { background-color: #ffffff !important; font-size: 12pt; }
+      header, .no-print, button, select, input, #modalEdicion, #modalNuevaZona, #modalPizarraFlota, #modalImportarOdin { display: none !important; }
+      main, #seccionDashboardGeneral { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+      .print-header { display: block !important; border-bottom: 2px solid #0f766e; padding-bottom: 8px; margin-bottom: 16px; }
+      .shadow-sm, .shadow { box-shadow: none !important; }
+      .border { border-color: #cbd5e1 !important; }
+      .page-break { page-break-inside: avoid; }
+    }
+    .print-header { display: none; }
+  </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- URL NUEVA DE TU APPS SCRIPT -->
+  <!-- URL NUEVA DE APPS SCRIPT -->
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHi-WdUGvJcH7HxK2pXheSx6zGsez9LnzRelmINJVlWrS0AZfTygbxjohgw2AFUEtUmg/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-bwLtM18GDyos2OwP2UwFEMklhf95PkDOIc4aKKgEiZR03WqIxtdc1IROYFqx89mZ/exec";
   </script>
 
   <!-- CABECERA INSTITUCIONAL -->
-  <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 px-4 py-3">
+  <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 px-4 py-3 no-print">
     <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 leading-tight">
@@ -48,48 +64,249 @@
           <span>Volver al Mapa</span>
         </a>
 
-        <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
+        <!-- BOTÓN ALTERNAR DASHBOARD GENERAL / FICHA ZONA -->
+        <button onclick="alternarDashboardGeneral()" id="btnToggleDashboard" class="bg-teal-700 hover:bg-teal-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-teal-800">
+          <span>📊</span>
+          <span id="btnToggleDashboardTexto">Dashboard General</span>
+        </button>
+
+        <!-- SELECTOR DE FECHA / CALENDARIO -->
+        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
+          <span class="text-xs font-black uppercase text-slate-500">📅</span>
+          <input type="date" id="inputCalendario" onchange="seleccionarFechaCalendario(this.value)" class="bg-transparent font-bold text-xs text-slate-800 outline-none cursor-pointer">
+        </div>
+
+        <!-- BOTÓN IMPORTAR ARCHIVO ODIN -->
+        <button onclick="abrirModalImportarOdin()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-purple-800">
+          <span>📂</span>
+          <span>Cargar ODIN</span>
+        </button>
+
+        <!-- PIZARRA DE FLOTA -->
+        <button onclick="abrirModalPizarraFlota()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-emerald-800">
+          <span>🚛</span>
+          <span>Pizarra</span>
+        </button>
+
+        <!-- SELECTOR DE ZONA -->
+        <div id="contenedorSelectorZona" class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
           <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
-          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer max-w-[170px] truncate"></select>
+          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer max-w-[150px] truncate"></select>
         </div>
 
         <button onclick="abrirModalNuevaZona()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
           ➕ <span>Zona</span>
         </button>
 
-        <button onclick="abrirModalEdicion()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
+        <button onclick="abrirModalEdicion()" id="btnEditarZonaNav" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
           ✏️ <span>Editar</span>
         </button>
 
+        <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
+          🖨️ <span>Informe</span>
+        </button>
+
         <button onclick="sincronizarConNube(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          🔄 <span id="syncText">Cargando...</span>
+          🔄 <span id="syncText">En Línea</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- CONTENIDO DE FICHA TÉCNICA -->
-  <main class="max-w-6xl mx-auto w-full p-4 flex-1">
+  <!-- ============================================================ -->
+  <!-- VISTA 1: DASHBOARD GENERAL CONSOLIDADO DEL MUNICIPIO          -->
+  <!-- ============================================================ -->
+  <section id="seccionDashboardGeneral" class="hidden max-w-6xl mx-auto w-full p-4 flex-1">
     
+    <!-- MEMBRETE DE IMPRESIÓN PARA DASHBOARD -->
+    <div class="print-header">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-black uppercase text-slate-900 leading-tight">Secretaría de Ambiente y GIRSU</h1>
+          <p class="text-xs font-bold text-slate-600 uppercase">Municipio de Quilmes • Tablero Ejecutivo de Recolección y Logística Integral</p>
+        </div>
+        <div class="text-right text-xs text-slate-500 font-semibold" id="printFechaDashboard"></div>
+      </div>
+    </div>
+
+    <!-- CABECERA DASHBOARD -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 page-break">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📊</span>
+          <h2 class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-tight">Dashboard General Quilmes</h2>
+          <span class="text-xs font-extrabold uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            Vista Ejecutiva Distrital
+          </span>
+        </div>
+        <p class="text-sm font-semibold text-slate-500 mt-1" id="subtituloDashboardPeriodo">Consolidado general de pesajes y efectividad operativa</p>
+      </div>
+
+      <!-- BOTONES DE PERÍODO DEL DASHBOARD -->
+      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center no-print">
+        <button onclick="cambiarVistaDashboard('semana1')" id="dash-btn-sem1" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition bg-white text-slate-900 shadow-sm">Semana 1</button>
+        <button onclick="cambiarVistaDashboard('semana2')" id="dash-btn-sem2" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 2</button>
+        <button onclick="cambiarVistaDashboard('semana3')" id="dash-btn-sem3" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 3</button>
+        <button onclick="cambiarVistaDashboard('semana4')" id="dash-btn-sem4" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 4</button>
+        <button onclick="cambiarVistaDashboard('total')" id="dash-btn-total" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-black uppercase transition text-slate-600 hover:text-slate-900">Total Mes</button>
+      </div>
+    </div>
+
+    <!-- TARJETAS CONSOLIDADAS DEL MUNICIPIO -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5 page-break">
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Residuos Ingresados</span>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span id="dashKpiTotalTn" class="text-3xl md:text-4xl font-black text-slate-900">0.0</span>
+          <span class="text-sm font-bold text-slate-500 uppercase">Tn</span>
+        </div>
+        <p class="text-xs font-medium text-slate-400 mt-2">Balanza Ecoparque en tolvas</p>
+      </div>
+
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Efectividad Global</span>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span id="dashKpiEfectividad" class="text-3xl md:text-4xl font-black text-emerald-600">100%</span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+          <div id="dashBarraEfectividad" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Cuadras Faltantes</span>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span id="dashKpiFaltantes" class="text-3xl md:text-4xl font-black text-amber-600">0</span>
+          <span id="dashKpiTotalCuadras" class="text-xs font-bold text-slate-400 uppercase">/ 0 cdras</span>
+        </div>
+        <p id="dashKpiManzanas" class="text-xs font-bold text-amber-700 mt-2">~0 manzanas pendientes</p>
+      </div>
+
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Zonas Operativas</span>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span id="dashKpiCantZonas" class="text-3xl md:text-4xl font-black text-indigo-600">0</span>
+          <span class="text-sm font-bold text-slate-500 uppercase">Zonas</span>
+        </div>
+        <p class="text-xs font-medium text-slate-400 mt-2">Rutas activas en el distrito</p>
+      </div>
+    </div>
+
+    <!-- COMPARATIVA POR TURNOS OPERATIVOS -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm page-break">
+      <h3 class="text-base font-black uppercase text-slate-900 tracking-tight mb-4 flex items-center gap-2">
+        <span>⏱️</span> Rendimiento Operativo por Turnos de Recolección
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Turno Mañana -->
+        <div class="border border-rose-200 bg-rose-50/50 p-4 rounded-xl">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-extrabold uppercase text-[#C93B3B] bg-rose-100 px-2.5 py-0.5 rounded-full">
+              Turno Mañana (05 a 08 hs)
+            </span>
+            <span id="dashPorcManana" class="text-xs font-black text-rose-700">0%</span>
+          </div>
+          <div class="flex items-baseline gap-1 mt-2">
+            <span id="dashTnManana" class="text-3xl font-black text-slate-900">0.0</span>
+            <span class="text-xs font-bold text-slate-500 uppercase">Tn</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasManana">0 zonas asignadas</p>
+        </div>
+
+        <!-- Turno Tarde -->
+        <div class="border border-emerald-200 bg-emerald-50/50 p-4 rounded-xl">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-extrabold uppercase text-[#0F9D58] bg-emerald-100 px-2.5 py-0.5 rounded-full">
+              Turno Tarde (12 a 15 hs)
+            </span>
+            <span id="dashPorcTarde" class="text-xs font-black text-emerald-700">0%</span>
+          </div>
+          <div class="flex items-baseline gap-1 mt-2">
+            <span id="dashTnTarde" class="text-3xl font-black text-slate-900">0.0</span>
+            <span class="text-xs font-bold text-slate-500 uppercase">Tn</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasTarde">0 zonas asignadas</p>
+        </div>
+
+        <!-- Turno Noche -->
+        <div class="border border-sky-200 bg-sky-50/50 p-4 rounded-xl">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-extrabold uppercase text-[#0088A8] bg-sky-100 px-2.5 py-0.5 rounded-full">
+              Turno Noche (19 a 22 hs)
+            </span>
+            <span id="dashPorcNoche" class="text-xs font-black text-sky-700">0%</span>
+          </div>
+          <div class="flex items-baseline gap-1 mt-2">
+            <span id="dashTnNoche" class="text-3xl font-black text-slate-900">0.0</span>
+            <span class="text-xs font-bold text-slate-500 uppercase">Tn</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasNoche">0 zonas asignadas</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA COMPARATIVA TERRITORIAL POR ZONAS -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm page-break">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h3 class="text-base font-black uppercase text-slate-900 tracking-tight flex items-center gap-2">
+          <span>📋</span> Estado Operativo y Desempeño Territorial por Zona
+        </h3>
+        <span class="text-xs font-bold text-slate-400 uppercase">Clic en cualquier fila para ir a su ficha</span>
+      </div>
+      <div class="overflow-x-auto border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-100 text-xs font-black uppercase text-slate-600 border-b">
+            <tr>
+              <th class="py-2.5 px-3">Zona</th>
+              <th class="py-2.5 px-3">Sector / Barrio</th>
+              <th class="py-2.5 px-3">Turno</th>
+              <th class="py-2.5 px-3 text-right">Tn Pesadas</th>
+              <th class="py-2.5 px-3 text-center">Faltante Cdras</th>
+              <th class="py-2.5 px-3 text-center">Cumplimiento</th>
+              <th class="py-2.5 px-3">Novedades Destacadas</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpoTablaDashboard" class="divide-y divide-slate-100 cursor-pointer"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- VISTA 2: FICHA TÉCNICA DETALLADA POR ZONA INDIVIDUAL         -->
+  <!-- ============================================================ -->
+  <main id="seccionFichaTecnica" class="max-w-6xl mx-auto w-full p-4 flex-1">
+    
+    <!-- MEMBRETE DE IMPRESIÓN -->
+    <div class="print-header">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-black uppercase text-slate-900 leading-tight">Secretaría de Ambiente y GIRSU</h1>
+          <p class="text-xs font-bold text-slate-600 uppercase">Municipio de Quilmes • Informe Técnico Operativo de Pesaje y Cobertura</p>
+        </div>
+        <div class="text-right text-xs text-slate-500 font-semibold" id="printFechaGeneracion"></div>
+      </div>
+    </div>
+
     <!-- HEADER ZONA -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 page-break">
       <div class="flex items-center gap-4 min-w-0 flex-1">
-        <div id="badgeZona" class="h-16 min-w-[4rem] max-w-[8rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap">
-          46
+        <div id="badgeZona" class="h-16 min-w-[4rem] max-w-[9rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap">
+          --
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-2">
-            <h2 id="tituloZona" class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-tight truncate">Zona 46</h2>
+            <h2 id="tituloZona" class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-tight truncate">Cargando Zona...</h2>
             <span id="badgeTurno" class="text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
-              Turno Mañana • Entre las 05 y las 08 hs
+              Turno --
             </span>
           </div>
           <p id="subtituloZona" class="text-sm font-semibold text-slate-500 mt-1 truncate">Municipio de Quilmes</p>
         </div>
       </div>
 
-      <!-- BOTONES DE SEMANAS -->
-      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center">
+      <!-- BOTONES DE SEMANAS Y FECHAS -->
+      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center no-print">
         <button onclick="seleccionarVista('semana1')" id="btn-sem1" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition bg-white text-slate-900 shadow-sm">Semana 1</button>
         <button onclick="seleccionarVista('semana2')" id="btn-sem2" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 2</button>
         <button onclick="seleccionarVista('semana3')" id="btn-sem3" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 3</button>
@@ -99,14 +316,14 @@
     </div>
 
     <!-- TARJETAS PRINCIPALES -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5 page-break">
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Toneladas Recolectadas</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Toneladas Pesadas (Ecoparque)</span>
         <div class="flex items-baseline gap-2 mt-1">
           <span id="kpiToneladas" class="text-4xl md:text-5xl font-black text-slate-900">0.0</span>
           <span class="text-sm font-bold text-slate-500 uppercase">Tn</span>
         </div>
-        <p class="text-xs font-medium text-slate-400 mt-2">Suma operativa del período</p>
+        <p class="text-xs font-medium text-slate-400 mt-2" id="kpiSubtituloPeriodo">Pesaje verificado por balanza ODIN</p>
       </div>
 
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
@@ -132,22 +349,137 @@
       </div>
     </div>
 
-    <!-- DESGLOSE DIARIO -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
-      <div class="flex items-center justify-between mb-3">
+    <!-- DESGLOSE DIARIO CALENDARIO -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm page-break">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 id="tituloDesglose" class="text-base font-black uppercase text-slate-900 tracking-tight">Desglose Diario</h3>
+        <span id="rangoFechasDesglose" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"></span>
       </div>
       <div id="contenedorDias" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"></div>
     </div>
 
     <!-- NOVEDADES -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-      <h3 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Novedades territoriales / Cuadras pendientes</h3>
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm page-break">
+      <h3 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Novedades territoriales / Cuadras pendientes / Relevos de Camiones</h3>
       <div id="cajaNovedades" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-semibold text-slate-700 min-h-[60px] flex items-center">
         Sin novedades registradas.
       </div>
     </div>
   </main>
+
+  <!-- MODAL: IMPORTAR REPORTE AUTOMÁTICO DE ODIN -->
+  <div id="modalImportarOdin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between border-b pb-3 mb-4">
+        <div>
+          <h3 class="text-xl font-black uppercase text-purple-900 flex items-center gap-2">
+            <span>📂 Importar Reporte de Balanza ODIN</span>
+          </h3>
+          <p class="text-xs font-bold text-slate-500 uppercase">
+            Subí el archivo Excel o CSV de ODIN. El sistema detecta la fecha del ticket automáticamente
+          </p>
+        </div>
+        <button onclick="cerrarModalImportarOdin()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+      </div>
+
+      <!-- FECHA DESTINO -->
+      <div class="flex flex-wrap items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-200 mb-4">
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-bold uppercase text-purple-900">Fecha del Reporte:</label>
+          <input type="date" id="odinFechaInput" class="border border-purple-300 rounded-lg px-2.5 py-1 text-sm font-bold bg-white text-purple-900">
+        </div>
+        <span class="text-xs text-purple-700 font-bold ml-auto">
+          Convierte kilos automáticamente a toneladas
+        </span>
+      </div>
+
+      <!-- SUBIR ARCHIVO -->
+      <div class="border-2 border-dashed border-slate-300 hover:border-purple-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-50" onclick="document.getElementById('inputArchivoOdin').click()">
+        <input type="file" id="inputArchivoOdin" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarArchivoOdin(event)">
+        <div class="text-3xl mb-2">📊</div>
+        <p class="text-sm font-black text-slate-800 uppercase">Hacé clic acá para seleccionar el archivo exportado de ODIN</p>
+        <p class="text-xs text-slate-500 mt-1">Soporta formatos Excel (.xlsx, .xls) o CSV (.csv)</p>
+      </div>
+
+      <!-- VISTA PREVIA -->
+      <div class="mt-4 flex-1 overflow-y-auto border border-slate-200 rounded-xl hidden" id="contenedorVistaPreviaOdin">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-100 text-xs font-black uppercase text-slate-600 sticky top-0 border-b">
+            <tr>
+              <th class="py-2.5 px-3">Fecha Detectada</th>
+              <th class="py-2.5 px-3">Interno / Camión</th>
+              <th class="py-2.5 px-3">Peso Neto ODIN</th>
+              <th class="py-2.5 px-3">Zona Asignada</th>
+              <th class="py-2.5 px-3">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpoTablaOdin" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+
+      <div class="border-t pt-4 mt-4 flex items-center justify-between">
+        <button onclick="cerrarModalImportarOdin()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">
+          Cancelar
+        </button>
+        <button onclick="aplicarDatosOdinEnZonas()" id="btnAplicarOdin" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-purple-700 hover:bg-purple-800 text-white shadow-md flex items-center gap-2" disabled>
+          <span>Aplicar Pesajes a las Zonas</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PIZARRA DIARIA DE FLOTA -->
+  <div id="modalPizarraFlota" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between border-b pb-3 mb-4">
+        <div>
+          <h3 class="text-xl font-black uppercase text-slate-900 flex items-center gap-2">
+            <span>🚛 Pizarra de Flota Diaria</span>
+          </h3>
+          <p class="text-xs font-bold text-slate-500 uppercase">
+            Asigná qué camión cubrió cada zona para cruzar con los pesajes
+          </p>
+        </div>
+        <button onclick="cerrarModalPizarraFlota()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4">
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-bold uppercase text-slate-600">Fecha:</label>
+          <input type="date" id="pizarraFechaInput" onchange="cambiarFechaPizarra(this.value)" class="border border-slate-300 rounded-lg px-2.5 py-1 text-sm font-bold bg-white">
+        </div>
+        <span id="pizarraSemanaTexto" class="text-xs font-bold uppercase text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-md"></span>
+        <span class="text-xs text-emerald-700 font-bold ml-auto bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
+          💡 Vincula cada interno con su zona
+        </span>
+      </div>
+
+      <div class="overflow-y-auto flex-1 pr-1 border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-100 text-xs font-black uppercase text-slate-600 sticky top-0 border-b">
+            <tr>
+              <th class="py-2.5 px-3">Zona</th>
+              <th class="py-2.5 px-3">Turno / Sector</th>
+              <th class="py-2.5 px-3">Interno / Camión</th>
+              <th class="py-2.5 px-3">Tn Balanza ODIN</th>
+              <th class="py-2.5 px-3">Cdras Falt.</th>
+              <th class="py-2.5 px-3">Novedad / Observación</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpoPizarraFlota" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+
+      <div class="border-t pt-4 mt-4 flex items-center justify-between">
+        <button onclick="cerrarModalPizarraFlota()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">
+          Cancelar
+        </button>
+        <button onclick="guardarPizarraEnNube()" id="btnGuardarPizarra" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-2">
+          <span>Aplicar y Guardar en Google Sheets</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: AGREGAR NUEVA ZONA -->
   <div id="modalNuevaZona" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
@@ -160,12 +492,12 @@
       <div class="space-y-3">
         <div>
           <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Número o Nombre de Zona</label>
-          <input type="text" id="nuevaZonaNum" placeholder="Ej: 31 o Bernal Oeste" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
+          <input type="text" id="nuevaZonaNum" placeholder="Ej: 31, 52, o La Florida" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
         </div>
 
         <div>
           <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Barrio / Límites / Referencia</label>
-          <input type="text" id="nuevaZonaNombre" placeholder="Ej: Ezpeleta Oeste - Av. República de Francia" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <input type="text" id="nuevaZonaNombre" placeholder="Ej: Ezpeleta Oeste - República de Francia" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
         </div>
 
         <div>
@@ -190,13 +522,13 @@
     </div>
   </div>
 
-  <!-- MODAL: EDITAR DÍAS -->
+  <!-- MODAL: EDITAR DÍAS DE UNA ZONA -->
   <div id="modalEdicion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
         <div>
-          <h3 class="text-xl font-black uppercase text-slate-900">Editar Datos • <span id="modalTituloSemana">Semana 1</span></h3>
-          <p class="text-xs font-bold text-emerald-700 uppercase">Zona <span id="modalZona">46</span></p>
+          <h3 class="text-xl font-black uppercase text-slate-900">Editar Zona • <span id="modalTituloSemana">Semana 1</span></h3>
+          <p class="text-xs font-bold text-emerald-700 uppercase">Zona <span id="modalZona">--</span></p>
         </div>
         <button onclick="cerrarModalEdicion()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
       </div>
@@ -214,10 +546,25 @@
 
   <script>
     let baseDatos = [];
-    let zonaActual = "46";
+    let zonaActual = "";
     let vistaActual = "semana1";
+    let vistaDashboard = "total";
+    let modoDashboardActivo = false;
+    let fechaSeleccionada = new Date();
+    let registrosOdinParseados = [];
 
     const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    const ZONAS_PREDEFINIDAS = [
+      { num: "0", turno: "Noche", nombre: "Quilmes Centro / Ribera", cuadras: 110 },
+      { num: "1", turno: "Noche", nombre: "Quilmes Centro", cuadras: 130 },
+      { num: "15", turno: "Tarde", nombre: "Don Bosco", cuadras: 115 },
+      { num: "21", turno: "Tarde", nombre: "Quilmes Oeste", cuadras: 125 },
+      { num: "31", turno: "Mañana", nombre: "Ezpeleta Oeste", cuadras: 120 },
+      { num: "46", turno: "Mañana", nombre: "Bernal Oeste", cuadras: 120 },
+      { num: "47", turno: "Mañana", nombre: "Bernal Oeste", cuadras: 120 }
+    ];
 
     const CONFIG_TURNOS = {
       "Mañana": { bgBadge: "bg-[#E65757]", textBadge: "bg-rose-50 text-[#C93B3B] border border-rose-200", horario: "Entre las 05 y las 08 hs" },
@@ -234,9 +581,99 @@
       }
     }
 
+    function calcularSemanaDelMes(d) {
+      const diaDelMes = d.getDate();
+      if (diaDelMes <= 7) return "semana1";
+      if (diaDelMes <= 14) return "semana2";
+      if (diaDelMes <= 21) return "semana3";
+      return "semana4";
+    }
+
+    function formatearFechaISO(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function alternarDashboardGeneral() {
+      modoDashboardActivo = !modoDashboardActivo;
+      const seccionDash = document.getElementById("seccionDashboardGeneral");
+      const seccionFicha = document.getElementById("seccionFichaTecnica");
+      const btnTexto = document.getElementById("btnToggleDashboardTexto");
+      const btn = document.getElementById("btnToggleDashboard");
+      const selZona = document.getElementById("contenedorSelectorZona");
+      const btnEditar = document.getElementById("btnEditarZonaNav");
+
+      if (modoDashboardActivo) {
+        seccionDash.classList.remove("hidden");
+        seccionFicha.classList.add("hidden");
+        btnTexto.innerText = "Ver Ficha de Zona";
+        btn.classList.replace("bg-teal-700", "bg-teal-900");
+        selZona.classList.add("opacity-50");
+        btnEditar.classList.add("hidden");
+        renderizarDashboardGeneral();
+      } else {
+        seccionDash.classList.add("hidden");
+        seccionFicha.classList.remove("hidden");
+        btnTexto.innerText = "Dashboard General";
+        btn.classList.replace("bg-teal-900", "bg-teal-700");
+        selZona.classList.remove("opacity-50");
+        btnEditar.classList.remove("hidden");
+        renderizarVista();
+      }
+    }
+
+    function seleccionarFechaCalendario(valor) {
+      if (!valor) return;
+      const partes = valor.split("-");
+      fechaSeleccionada = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+      vistaActual = calcularSemanaDelMes(fechaSeleccionada);
+      actualizarBotonesSemana();
+      
+      if (modoDashboardActivo) {
+        renderizarDashboardGeneral();
+      } else {
+        renderizarVista();
+      }
+    }
+
+    // CARGA INMEDIATA EN 0.05 SEGUNDOS + SYNC EN SEGUNDO PLANO
+    function iniciarAppUltraRapida() {
+      leerHashURL();
+      document.getElementById("inputCalendario").value = formatearFechaISO(fechaSeleccionada);
+      vistaActual = calcularSemanaDelMes(fechaSeleccionada);
+
+      const cache = localStorage.getItem("quilmes_datos_cache");
+      if (cache) {
+        try {
+          baseDatos = JSON.parse(cache);
+        } catch (e) {
+          generarPlantillaBase();
+        }
+      } else {
+        generarPlantillaBase();
+      }
+
+      determinarZonaInicial();
+      poblarSelectorZonas();
+      actualizarBotonesSemana();
+      renderizarVista();
+
+      // Sincronización transparente en segundo plano
+      sincronizarConNube();
+    }
+
     async function sincronizarConNube(forzar = false) {
       const syncText = document.getElementById("syncText");
-      syncText.innerText = "Cargando...";
+      if (forzar) syncText.innerText = "Cargando...";
+
+      const hoy = new Date();
+      const opciones = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+      const printFecha = document.getElementById("printFechaGeneracion");
+      const printFechaD = document.getElementById("printFechaDashboard");
+      if (printFecha) printFecha.innerText = "Emisión: " + hoy.toLocaleDateString('es-AR', opciones);
+      if (printFechaD) printFechaD.innerText = "Emisión: " + hoy.toLocaleDateString('es-AR', opciones);
 
       try {
         const res = await fetch(APPS_SCRIPT_URL + "?nocache=" + new Date().getTime(), {
@@ -254,40 +691,23 @@
           }));
           localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
           syncText.innerText = "En Línea";
-        } else {
-          if (baseDatos.length === 0) generarPlantillaBase();
-          syncText.innerText = "Planilla Vacía";
+          
+          poblarSelectorZonas();
+          if (modoDashboardActivo) {
+            renderizarDashboardGeneral();
+          } else {
+            renderizarVista();
+          }
         }
       } catch (err) {
         console.warn("Fallo conectando a Sheet:", err);
-        const cache = localStorage.getItem("quilmes_datos_cache");
-        if (cache) {
-          baseDatos = JSON.parse(cache);
-          syncText.innerText = "Modo Local";
-        } else {
-          generarPlantillaBase();
-          syncText.innerText = "Datos Base";
-        }
+        syncText.innerText = "Modo Local";
       }
-
-      poblarSelectorZonas();
-      leerHashURL();
-      renderizarVista();
     }
 
     function generarPlantillaBase() {
       baseDatos = [];
-      const zonas = [
-        { num: "46", turno: "Mañana", nombre: "Bernal Oeste" },
-        { num: "31", turno: "Mañana", nombre: "Ezpeleta Oeste" },
-        { num: "47", turno: "Mañana", nombre: "Bernal Oeste" },
-        { num: "21", turno: "Tarde", nombre: "Quilmes Oeste" },
-        { num: "15", turno: "Tarde", nombre: "Don Bosco" },
-        { num: "0", turno: "Noche", nombre: "Quilmes Centro / Costa" },
-        { num: "1", turno: "Noche", nombre: "Quilmes Centro" }
-      ];
-
-      zonas.forEach(z => {
+      ZONAS_PREDEFINIDAS.forEach(z => {
         for (let s = 1; s <= 4; s++) {
           DIAS.forEach(d => {
             baseDatos.push({
@@ -298,7 +718,7 @@
               Dia: d,
               Toneladas: 0,
               CuadrasFaltantes: 0,
-              CuadrasTotales: 120,
+              CuadrasTotales: z.cuadras || 120,
               Novedades: ""
             });
           });
@@ -306,12 +726,40 @@
       });
     }
 
+    function determinarZonaInicial() {
+      const hash = window.location.hash.replace("#", "").trim();
+      const ultimaGuardada = localStorage.getItem("quilmes_ultima_zona");
+
+      if (hash) {
+        zonaActual = limpiarTexto(hash);
+      } else if (ultimaGuardada) {
+        zonaActual = limpiarTexto(ultimaGuardada);
+      } else {
+        const zonas = obtenerListaZonasUnicas();
+        zonaActual = zonas.length > 0 ? zonas[0] : "31";
+      }
+    }
+
+    function obtenerListaZonasUnicas() {
+      const setZonas = new Set(baseDatos.map(d => limpiarTexto(d.Zona)));
+      ZONAS_PREDEFINIDAS.forEach(z => setZonas.add(z.num));
+      const arr = Array.from(setZonas).filter(Boolean);
+      return arr.sort((a, b) => {
+        const numA = parseInt(a, 10);
+        const numB = parseInt(b, 10);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.localeCompare(b);
+      });
+    }
+
     function poblarSelectorZonas() {
       const selector = document.getElementById("selectorZona");
-      const zonas = [...new Set(baseDatos.map(d => limpiarTexto(d.Zona)))];
+      const zonas = obtenerListaZonasUnicas();
       
-      if (!zonas.includes(zonaActual) && zonas.length > 0) zonaActual = zonas[0];
-      
+      if (!zonas.includes(zonaActual) && zonas.length > 0) {
+        zonaActual = zonas[0];
+      }
+
       selector.innerHTML = zonas.map(z => 
         `<option value="${z}" ${z === zonaActual ? 'selected' : ''}>${isNaN(z) ? z : 'Zona ' + z}</option>`
       ).join('');
@@ -320,13 +768,20 @@
     function cambiarZona(zona) {
       zonaActual = limpiarTexto(zona);
       window.location.hash = encodeURIComponent(zonaActual);
-      renderizarVista();
+      localStorage.setItem("quilmes_ultima_zona", zonaActual);
+      
+      if (modoDashboardActivo) {
+        alternarDashboardGeneral();
+      } else {
+        renderizarVista();
+      }
     }
 
     function leerHashURL() {
       const hash = window.location.hash.replace("#", "").trim();
       if (hash) {
         zonaActual = limpiarTexto(hash);
+        localStorage.setItem("quilmes_ultima_zona", zonaActual);
         const sel = document.getElementById("selectorZona");
         if (sel) sel.value = zonaActual;
       }
@@ -334,12 +789,38 @@
 
     function seleccionarVista(vista) {
       vistaActual = vista;
+      actualizarBotonesSemana();
+      renderizarVista();
+    }
+
+    function actualizarBotonesSemana() {
       document.querySelectorAll(".tab-btn").forEach(b => {
         b.classList.remove("bg-white", "bg-emerald-600", "text-white", "text-slate-900", "shadow-sm");
         b.classList.add("text-slate-600");
       });
 
-      const btn = document.getElementById(`btn-${vista === 'total' ? 'total' : vista.replace('semana', 'sem')}`);
+      const btn = document.getElementById(`btn-${vistaActual === 'total' ? 'total' : vistaActual.replace('semana', 'sem')}`);
+      if (btn) {
+        btn.classList.remove("text-slate-600");
+        if (vistaActual === 'total') {
+          btn.classList.add("bg-emerald-600", "text-white", "shadow-sm");
+        } else {
+          btn.classList.add("bg-white", "text-slate-900", "shadow-sm");
+        }
+      }
+    }
+
+    // ============================================================
+    // RENDERIZADOR DEL DASHBOARD GENERAL
+    // ============================================================
+    function cambiarVistaDashboard(vista) {
+      vistaDashboard = vista;
+      document.querySelectorAll(".dash-tab-btn").forEach(b => {
+        b.classList.remove("bg-white", "bg-emerald-600", "text-white", "text-slate-900", "shadow-sm");
+        b.classList.add("text-slate-600");
+      });
+
+      const btn = document.getElementById(`dash-btn-${vista === 'total' ? 'total' : vista.replace('semana', 'sem')}`);
       if (btn) {
         btn.classList.remove("text-slate-600");
         if (vista === 'total') {
@@ -348,13 +829,166 @@
           btn.classList.add("bg-white", "text-slate-900", "shadow-sm");
         }
       }
-      renderizarVista();
+      renderizarDashboardGeneral();
     }
 
-    function renderizarVista() {
-      const registrosZona = baseDatos.filter(d => limpiarTexto(d.Zona) === zonaActual);
-      const regBase = registrosZona[0] || { Nombre: `Zona ${zonaActual}`, Turno: "Mañana", CuadrasTotales: 120 };
+    function renderizarDashboardGeneral() {
+      const zonas = obtenerListaZonasUnicas();
+      const nombreMes = MESES[fechaSeleccionada.getMonth()];
+      const anio = fechaSeleccionada.getFullYear();
+      const numSemana = vistaDashboard.replace("semana", "");
 
+      const subtituloElem = document.getElementById("subtituloDashboardPeriodo");
+      if (vistaDashboard === "total") {
+        subtituloElem.innerText = `Consolidado de todas las zonas • Mes de ${nombreMes} ${anio} (4 Semanas)`;
+      } else {
+        subtituloElem.innerText = `Consolidado de todas las zonas • Semana ${numSemana} de ${nombreMes} ${anio}`;
+      }
+
+      let totalTnMunicipio = 0;
+      let totalFaltantesMunicipio = 0;
+      let divisorCuadrasMunicipio = 0;
+
+      let tnTurnos = { "Mañana": 0, "Tarde": 0, "Noche": 0 };
+      let zonasTurnos = { "Mañana": new Set(), "Tarde": new Set(), "Noche": new Set() };
+
+      const filasTabla = [];
+
+      zonas.forEach(z => {
+        let regZona = baseDatos.filter(d => limpiarTexto(d.Zona) === z);
+        const cat = ZONAS_PREDEFINIDAS.find(p => p.num === z) || { nombre: `Zona ${z}`, turno: "Mañana", cuadras: 120 };
+        const turno = regZona[0]?.Turno || cat.turno;
+        const nombreZona = regZona[0]?.Nombre || cat.nombre;
+        const cuadrasBase = parseFloat(regZona[0]?.CuadrasTotales) || cat.cuadras || 120;
+
+        let regFiltrados = [];
+        if (vistaDashboard === "total") {
+          regFiltrados = regZona;
+        } else {
+          regFiltrados = regZona.filter(d => String(d.Semana).toLowerCase().includes(numSemana));
+        }
+
+        let tnZona = 0;
+        let faltZona = 0;
+        let ultimasNovedades = [];
+
+        regFiltrados.forEach(r => {
+          tnZona += parseFloat(r.Toneladas) || 0;
+          faltZona += parseInt(r.CuadrasFaltantes) || 0;
+          if (r.Novedades && r.Novedades.trim()) ultimasNovedades.push(r.Novedades);
+        });
+
+        const divisorZona = vistaDashboard === "total" ? cuadrasBase * 4 : cuadrasBase;
+        const efectividadZona = Math.max(0, Math.min(100, (((divisorZona - faltZona) / divisorZona) * 100))).toFixed(1);
+
+        totalTnMunicipio += tnZona;
+        totalFaltantesMunicipio += faltZona;
+        divisorCuadrasMunicipio += divisorZona;
+
+        if (tnTurnos[turno] !== undefined) {
+          tnTurnos[turno] += tnZona;
+          zonasTurnos[turno].add(z);
+        }
+
+        filasTabla.push({
+          zona: z,
+          nombre: nombreZona,
+          turno: turno,
+          toneladas: tnZona,
+          faltantes: faltZona,
+          efectividad: parseFloat(efectividadZona),
+          novedad: ultimasNovedades.slice(-1)[0] || "Sin observaciones"
+        });
+      });
+
+      const efectividadMunicipio = divisorCuadrasMunicipio > 0 
+        ? Math.max(0, Math.min(100, (((divisorCuadrasMunicipio - totalFaltantesMunicipio) / divisorCuadrasMunicipio) * 100))).toFixed(1)
+        : "100.0";
+
+      document.getElementById("dashKpiTotalTn").innerText = totalTnMunicipio.toFixed(1);
+      document.getElementById("dashKpiEfectividad").innerText = `${efectividadMunicipio}%`;
+      document.getElementById("dashBarraEfectividad").style.width = `${efectividadMunicipio}%`;
+      document.getElementById("dashKpiFaltantes").innerText = totalFaltantesMunicipio;
+      document.getElementById("dashKpiTotalCuadras").innerText = `/ ${divisorCuadrasMunicipio} cdras`;
+      document.getElementById("dashKpiManzanas").innerText = `~${Math.round(totalFaltantesMunicipio / 4)} manzanas pendientes`;
+      document.getElementById("dashKpiCantZonas").innerText = zonas.length;
+
+      const calcPorc = (tn) => totalTnMunicipio > 0 ? ((tn / totalTnMunicipio) * 100).toFixed(1) : 0;
+      
+      document.getElementById("dashTnManana").innerText = tnTurnos["Mañana"].toFixed(1);
+      document.getElementById("dashPorcManana").innerText = `${calcPorc(tnTurnos["Mañana"])}%`;
+      document.getElementById("dashZonasManana").innerText = `${zonasTurnos["Mañana"].size} zonas asignadas`;
+
+      document.getElementById("dashTnTarde").innerText = tnTurnos["Tarde"].toFixed(1);
+      document.getElementById("dashPorcTarde").innerText = `${calcPorc(tnTurnos["Tarde"])}%`;
+      document.getElementById("dashZonasTarde").innerText = `${zonasTurnos["Tarde"].size} zonas asignadas`;
+
+      document.getElementById("dashTnNoche").innerText = tnTurnos["Noche"].toFixed(1);
+      document.getElementById("dashPorcNoche").innerText = `${calcPorc(tnTurnos["Noche"])}%`;
+      document.getElementById("dashZonasNoche").innerText = `${zonasTurnos["Noche"].size} zonas asignadas`;
+
+      const cuerpoTabla = document.getElementById("cuerpoTablaDashboard");
+      cuerpoTabla.innerHTML = "";
+
+      filasTabla.sort((a, b) => b.toneladas - a.toneladas).forEach(f => {
+        const conf = CONFIG_TURNOS[f.turno] || CONFIG_TURNOS["Mañana"];
+        cuerpoTabla.innerHTML += `
+          <tr onclick="cambiarZona('${f.zona}')" class="hover:bg-teal-50/50 transition-colors">
+            <td class="py-2.5 px-3 font-black text-slate-900">
+              <span class="inline-block w-8 h-8 rounded-lg text-white font-black text-center leading-8 text-xs ${conf.bgBadge}">
+                ${f.zona}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-bold text-slate-800">${f.nombre}</td>
+            <td class="py-2.5 px-3">
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${conf.textBadge}">
+                ${f.turno}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-right font-black text-slate-900">${f.toneladas.toFixed(1)} <span class="text-xs font-normal text-slate-400">Tn</span></td>
+            <td class="py-2.5 px-3 text-center font-bold ${f.faltantes > 0 ? 'text-amber-700 bg-amber-50 rounded px-1' : 'text-slate-400'}">
+              ${f.faltantes > 0 ? `-${f.faltantes} cdras` : '0'}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="text-xs font-extrabold px-2 py-0.5 rounded ${f.efectividad >= 95 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${f.efectividad}%
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-xs text-slate-500 truncate max-w-[200px]" title="${f.novedad}">
+              ${f.novedad}
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // ============================================================
+    // RENDERIZADOR DE FICHA POR ZONA INDIVIDUAL
+    // ============================================================
+    function renderizarVista() {
+      let registrosZona = baseDatos.filter(d => limpiarTexto(d.Zona) === zonaActual);
+      
+      if (registrosZona.length === 0) {
+        const cat = ZONAS_PREDEFINIDAS.find(z => z.num === zonaActual) || { nombre: `Zona ${zonaActual}`, turno: "Mañana", cuadras: 120 };
+        for (let s = 1; s <= 4; s++) {
+          DIAS.forEach(d => {
+            baseDatos.push({
+              Zona: zonaActual,
+              Nombre: cat.nombre,
+              Turno: cat.turno,
+              Semana: `Semana ${s}`,
+              Dia: d,
+              Toneladas: 0,
+              CuadrasFaltantes: 0,
+              CuadrasTotales: cat.cuadras || 120,
+              Novedades: ""
+            });
+          });
+        }
+        registrosZona = baseDatos.filter(d => limpiarTexto(d.Zona) === zonaActual);
+      }
+
+      const regBase = registrosZona[0] || { Nombre: `Zona ${zonaActual}`, Turno: "Mañana", CuadrasTotales: 120 };
       const conf = CONFIG_TURNOS[regBase.Turno] || CONFIG_TURNOS["Mañana"];
 
       const badgeElem = document.getElementById("badgeZona");
@@ -367,7 +1001,7 @@
         fontSizeClass = "text-sm";
       }
 
-      badgeElem.className = `h-16 min-w-[4rem] max-w-[8rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap ${conf.bgBadge} ${fontSizeClass}`;
+      badgeElem.className = `h-16 min-w-[4rem] max-w-[9rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap ${conf.bgBadge} ${fontSizeClass}`;
 
       document.getElementById("tituloZona").innerText = isNaN(zonaActual) ? zonaActual : `Zona ${zonaActual}`;
       document.getElementById("subtituloZona").innerText = regBase.Nombre;
@@ -378,13 +1012,22 @@
 
       let registrosFiltrados = [];
       const numSemana = vistaActual.replace("semana", "");
+      const nombreMes = MESES[fechaSeleccionada.getMonth()];
+      const anio = fechaSeleccionada.getFullYear();
 
       if (vistaActual === "total") {
         registrosFiltrados = registrosZona;
-        document.getElementById("tituloDesglose").innerText = "Resumen Semanas del Mes";
+        document.getElementById("tituloDesglose").innerText = `Resumen Mensual • ${nombreMes} ${anio}`;
+        document.getElementById("rangoFechasDesglose").innerText = `Mes Completo (4 Semanas)`;
+        document.getElementById("kpiSubtituloPeriodo").innerText = `Acumulado mensual de pesajes en tolva`;
       } else {
         registrosFiltrados = registrosZona.filter(d => String(d.Semana).toLowerCase().includes(numSemana));
-        document.getElementById("tituloDesglose").innerText = `Desglose Diario • Semana ${numSemana}`;
+        document.getElementById("tituloDesglose").innerText = `Desglose Diario • Semana ${numSemana} de ${nombreMes}`;
+        
+        const inicioDia = (parseInt(numSemana) - 1) * 7 + 1;
+        const finDia = Math.min(parseInt(numSemana) * 7, 30);
+        document.getElementById("rangoFechasDesglose").innerText = `Período: del ${inicioDia} al ${finDia} de ${nombreMes}`;
+        document.getElementById("kpiSubtituloPeriodo").innerText = `Pesajes semana ${numSemana} (${nombreMes})`;
       }
 
       let totalTn = 0;
@@ -415,7 +1058,7 @@
       
       const items = vistaActual === "total" ? ["Semana 1", "Semana 2", "Semana 3", "Semana 4"] : DIAS;
 
-      items.forEach(item => {
+      items.forEach((item, index) => {
         const itemReg = registrosFiltrados.find(r => 
           vistaActual === "total" 
             ? String(r.Semana).toLowerCase().includes(item.toLowerCase())
@@ -423,10 +1066,16 @@
         ) || { Toneladas: 0, CuadrasFaltantes: 0 };
 
         const faltan = parseInt(itemReg.CuadrasFaltantes) || 0;
+        
+        let etiquetaCalendario = item;
+        if (vistaActual !== "total") {
+          const diaNum = (parseInt(numSemana) - 1) * 7 + index + 1;
+          etiquetaCalendario = `${item} ${diaNum}`;
+        }
 
         contDias.innerHTML += `
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
-            <span class="text-xs font-bold uppercase text-slate-500 block">${item}</span>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center page-break">
+            <span class="text-xs font-black uppercase text-slate-500 block">${etiquetaCalendario}</span>
             <span class="text-xl font-black text-slate-900 block mt-1">${parseFloat(itemReg.Toneladas || 0).toFixed(1)} <span class="text-xs font-normal">Tn</span></span>
             <span class="text-xs font-bold mt-1 inline-block ${faltan > 0 ? 'text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded' : 'text-emerald-700'}">
               ${faltan > 0 ? `-${faltan} cdras` : '✓ 100%'}
@@ -441,6 +1090,335 @@
         : "Sin novedades registradas ni reclamos de cuadras pendientes.";
     }
 
+    // ===================================================
+    // IMPORTACIÓN AUTOMÁTICA DE ODIN CON FECHA
+    // ===================================================
+    function abrirModalImportarOdin() {
+      registrosOdinParseados = [];
+      document.getElementById("contenedorVistaPreviaOdin").classList.add("hidden");
+      document.getElementById("btnAplicarOdin").disabled = true;
+      document.getElementById("inputArchivoOdin").value = "";
+      document.getElementById("odinFechaInput").value = formatearFechaISO(fechaSeleccionada);
+      document.getElementById("modalImportarOdin").classList.remove("hidden");
+    }
+
+    function cerrarModalImportarOdin() {
+      document.getElementById("modalImportarOdin").classList.add("hidden");
+    }
+
+    function procesarArchivoOdin(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+          if (!json || json.length === 0) {
+            alert("El archivo no contiene filas o está vacío.");
+            return;
+          }
+
+          interpretarColumnasOdin(json);
+        } catch (err) {
+          console.error("Error leyendo archivo ODIN:", err);
+          alert("Hubo un error al leer el archivo. Asegúrate de que sea un Excel o CSV válido.");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function interpretarColumnasOdin(filas) {
+      registrosOdinParseados = [];
+      const fechaIngresada = document.getElementById("odinFechaInput").value || formatearFechaISO(fechaSeleccionada);
+
+      filas.forEach((fila, idx) => {
+        let interno = "";
+        let peso = 0;
+        let fechaFila = fechaIngresada;
+
+        for (const [col, val] of Object.entries(fila)) {
+          const c = col.toLowerCase();
+          const v = String(val).trim();
+
+          if (c.includes("fecha") || c.includes("date") || c.includes("hora")) {
+            if (v && v.length >= 8) {
+              const match = v.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+              if (match) {
+                const dia = match[1].padStart(2, '0');
+                const mes = match[2].padStart(2, '0');
+                const anio = match[3].length === 2 ? '20' + match[3] : match[3];
+                fechaFila = `${anio}-${mes}-${dia}`;
+              }
+            }
+          }
+
+          if (c.includes("interno") || c.includes("camion") || c.includes("vehiculo") || c.includes("unidad") || c.includes("patente")) {
+            if (!interno && v) interno = v;
+          }
+
+          if (c.includes("neto") || c.includes("peso") || c.includes("kilos") || c.includes("ton") || c.includes("carga")) {
+            const numLimpio = parseFloat(String(val).replace(/,/g, '.').replace(/[^0-9.-]+/g, ""));
+            if (!isNaN(numLimpio) && numLimpio > 0) {
+              peso = numLimpio;
+            }
+          }
+        }
+
+        if (interno && peso > 0) {
+          const tnCalculadas = peso > 100 ? (peso / 1000).toFixed(1) : peso.toFixed(1);
+          registrosOdinParseados.push({
+            id: idx,
+            fecha: fechaFila,
+            interno: interno,
+            toneladas: parseFloat(tnCalculadas),
+            zona: ""
+          });
+        }
+      });
+
+      if (registrosOdinParseados.length === 0) {
+        alert("No se pudieron detectar columnas de Interno y Peso en el archivo. Verifica los encabezados.");
+        return;
+      }
+
+      renderizarTablaVistaPreviaOdin();
+    }
+
+    function renderizarTablaVistaPreviaOdin() {
+      const cuerpo = document.getElementById("cuerpoTablaOdin");
+      cuerpo.innerHTML = "";
+      const zonasDisponibles = obtenerListaZonasUnicas();
+
+      registrosOdinParseados.forEach((reg, index) => {
+        cuerpo.innerHTML += `
+          <tr class="hover:bg-purple-50 transition-colors">
+            <td class="py-2.5 px-3 font-bold text-slate-600 text-xs">${reg.fecha}</td>
+            <td class="py-2.5 px-3 font-black text-slate-900">Interno ${reg.interno}</td>
+            <td class="py-2.5 px-3 font-extrabold text-purple-900">${reg.toneladas} Tn</td>
+            <td class="py-2.5 px-3">
+              <select onchange="actualizarZonaAsignadaOdin(${index}, this.value)" class="border border-slate-300 rounded px-2 py-1 text-xs font-bold bg-white w-full max-w-[150px]">
+                <option value="">-- Asignar Zona --</option>
+                ${zonasDisponibles.map(z => `<option value="${z}" ${z === reg.zona ? 'selected' : ''}>Zona ${z}</option>`).join('')}
+              </select>
+            </td>
+            <td class="py-2.5 px-3">
+              <span id="estadoOdin_${index}" class="text-xs font-bold px-2 py-0.5 rounded ${reg.zona ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${reg.zona ? 'Listo para imputar' : 'Requiere Zona'}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById("contenedorVistaPreviaOdin").classList.remove("hidden");
+      document.getElementById("btnAplicarOdin").disabled = false;
+    }
+
+    function actualizarZonaAsignadaOdin(index, nuevaZona) {
+      if (registrosOdinParseados[index]) {
+        registrosOdinParseados[index].zona = nuevaZona;
+        const estadoElem = document.getElementById(`estadoOdin_${index}`);
+        if (estadoElem) {
+          if (nuevaZona) {
+            estadoElem.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+            estadoElem.innerText = "Listo para imputar";
+          } else {
+            estadoElem.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
+            estadoElem.innerText = "Requiere Zona";
+          }
+        }
+      }
+    }
+
+    async function aplicarDatosOdinEnZonas() {
+      const btn = document.getElementById("btnAplicarOdin");
+      btn.innerText = "Imputando pesajes...";
+      btn.disabled = true;
+
+      registrosOdinParseados.forEach(reg => {
+        if (reg.zona) {
+          const dObj = new Date(reg.fecha + "T12:00:00");
+          const semanaReg = calcularSemanaDelMes(dObj);
+          const diaSemanaIndex = dObj.getDay();
+          const diaNombre = (diaSemanaIndex === 0 || diaSemanaIndex === 6) ? "Sábado" : DIAS[diaSemanaIndex - 1];
+
+          let registro = baseDatos.find(d => 
+            limpiarTexto(d.Zona) === reg.zona && 
+            String(d.Semana).toLowerCase() === semanaReg.toLowerCase() && 
+            String(d.Dia).toLowerCase() === diaNombre.toLowerCase()
+          );
+
+          const internoTexto = `Int. ${reg.interno} (${reg.fecha})`;
+
+          if (registro) {
+            registro.Toneladas = parseFloat((parseFloat(registro.Toneladas || 0) + reg.toneladas).toFixed(1));
+            registro.Novedades = registro.Novedades ? `${registro.Novedades} | ${internoTexto}` : internoTexto;
+          } else {
+            const cat = ZONAS_PREDEFINIDAS.find(p => p.num === reg.zona) || { nombre: `Zona ${reg.zona}`, turno: "Mañana", cuadras: 120 };
+            baseDatos.push({
+              Zona: reg.zona,
+              Nombre: cat.nombre,
+              Turno: cat.turno,
+              Semana: semanaReg,
+              Dia: diaNombre,
+              Toneladas: reg.toneladas,
+              CuadrasFaltantes: 0,
+              CuadrasTotales: cat.cuadras || 120,
+              Novedades: internoTexto
+            });
+          }
+        }
+      });
+
+      localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
+      renderizarVista();
+      if (modoDashboardActivo) renderizarDashboardGeneral();
+      await enviarBaseDatosASheet();
+
+      btn.innerText = "¡Pesajes Cargados!";
+      setTimeout(() => {
+        cerrarModalImportarOdin();
+        btn.innerText = "Aplicar Pesajes a las Zonas";
+        btn.disabled = false;
+      }, 1000);
+    }
+
+    // ==========================================
+    // PIZARRA DE SALIDA DIARIA CON CALENDARIO
+    // ==========================================
+    function abrirModalPizarraFlota() {
+      document.getElementById("pizarraFechaInput").value = formatearFechaISO(fechaSeleccionada);
+      cambiarFechaPizarra(document.getElementById("pizarraFechaInput").value);
+      document.getElementById("modalPizarraFlota").classList.remove("hidden");
+    }
+
+    function cerrarModalPizarraFlota() {
+      document.getElementById("modalPizarraFlota").classList.add("hidden");
+    }
+
+    function cambiarFechaPizarra(val) {
+      if (!val) return;
+      const dObj = new Date(val + "T12:00:00");
+      const sem = calcularSemanaDelMes(dObj);
+      const diaIdx = dObj.getDay();
+      const diaNombre = (diaIdx === 0 || diaIdx === 6) ? "Sábado" : DIAS[diaIdx - 1];
+
+      document.getElementById("pizarraSemanaTexto").innerText = `${sem.toUpperCase()} • ${diaNombre.toUpperCase()}`;
+      renderizarPizarraFlota(sem, diaNombre);
+    }
+
+    function renderizarPizarraFlota(semanaSel, diaSel) {
+      if (!semanaSel || !diaSel) {
+        const dObj = new Date(document.getElementById("pizarraFechaInput").value + "T12:00:00");
+        semanaSel = calcularSemanaDelMes(dObj);
+        const diaIdx = dObj.getDay();
+        diaSel = (diaIdx === 0 || diaIdx === 6) ? "Sábado" : DIAS[diaIdx - 1];
+      }
+
+      const cuerpo = document.getElementById("cuerpoPizarraFlota");
+      const zonas = obtenerListaZonasUnicas();
+      cuerpo.innerHTML = "";
+
+      zonas.forEach(z => {
+        let reg = baseDatos.find(d => 
+          limpiarTexto(d.Zona) === z && 
+          String(d.Semana).toLowerCase() === semanaSel.toLowerCase() && 
+          String(d.Dia).toLowerCase() === diaSel.toLowerCase()
+        );
+
+        if (!reg) {
+          const cat = ZONAS_PREDEFINIDAS.find(p => p.num === z) || { nombre: `Zona ${z}`, turno: "Mañana", cuadras: 120 };
+          reg = { Zona: z, Nombre: cat.nombre, Turno: cat.turno, Semana: semanaSel, Dia: diaSel, Toneladas: 0, CuadrasFaltantes: 0, CuadrasTotales: 120, Novedades: "" };
+          baseDatos.push(reg);
+        }
+
+        let internoVal = "";
+        let observacionVal = reg.Novedades || "";
+        if (observacionVal.startsWith("Int. ")) {
+          const partes = observacionVal.split(" | ");
+          internoVal = partes[0].replace("Int. ", "").trim();
+          observacionVal = partes.slice(1).join(" | ").trim();
+        }
+
+        cuerpo.innerHTML += `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-2 px-3 font-black text-slate-900">Zona ${z}</td>
+            <td class="py-2 px-3">
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${CONFIG_TURNOS[reg.Turno]?.textBadge || 'bg-slate-100'}">
+                ${reg.Turno}
+              </span>
+              <span class="text-xs text-slate-500 block mt-0.5 truncate max-w-[140px]">${reg.Nombre}</span>
+            </td>
+            <td class="py-2 px-3">
+              <input type="text" placeholder="Ej: 24 o 18+05" id="piz_int_${z}" value="${internoVal}" class="w-24 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center bg-white">
+            </td>
+            <td class="py-2 px-3">
+              <div class="flex items-center gap-1">
+                <input type="number" step="0.1" id="piz_tn_${z}" value="${reg.Toneladas || 0}" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center bg-white">
+                <span class="text-xs text-slate-500 font-bold">Tn</span>
+              </div>
+            </td>
+            <td class="py-2 px-3">
+              <input type="number" id="piz_cdras_${z}" value="${reg.CuadrasFaltantes || 0}" class="w-16 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center bg-white">
+            </td>
+            <td class="py-2 px-3">
+              <input type="text" placeholder="Bacheo, lluvia, relevo..." id="piz_nov_${z}" value="${observacionVal}" class="w-full border border-slate-300 rounded px-2 py-1 text-sm bg-white">
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function guardarPizarraEnNube() {
+      const btn = document.getElementById("btnGuardarPizarra");
+      btn.innerText = "Guardando...";
+      btn.disabled = true;
+
+      const dObj = new Date(document.getElementById("pizarraFechaInput").value + "T12:00:00");
+      const semanaSel = calcularSemanaDelMes(dObj);
+      const diaIdx = dObj.getDay();
+      const diaSel = (diaIdx === 0 || diaIdx === 6) ? "Sábado" : DIAS[diaIdx - 1];
+      const zonas = obtenerListaZonasUnicas();
+
+      zonas.forEach(z => {
+        const intVal = document.getElementById(`piz_int_${z}`)?.value.trim();
+        const tnVal = parseFloat(document.getElementById(`piz_tn_${z}`)?.value) || 0;
+        const cdrasVal = parseInt(document.getElementById(`piz_cdras_${z}`)?.value) || 0;
+        const novVal = document.getElementById(`piz_nov_${z}`)?.value.trim() || "";
+
+        let reg = baseDatos.find(d => 
+          limpiarTexto(d.Zona) === z && 
+          String(d.Semana).toLowerCase() === semanaSel.toLowerCase() && 
+          String(d.Dia).toLowerCase() === diaSel.toLowerCase()
+        );
+
+        if (reg) {
+          reg.Toneladas = tnVal;
+          reg.CuadrasFaltantes = cdrasVal;
+          reg.Novedades = intVal ? `Int. ${intVal}${novVal ? ' | ' + novVal : ''}` : novVal;
+        }
+      });
+
+      localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
+      renderizarVista();
+      if (modoDashboardActivo) renderizarDashboardGeneral();
+      await enviarBaseDatosASheet();
+
+      btn.innerText = "¡Guardado con Éxito!";
+      setTimeout(() => {
+        btn.innerText = "Aplicar y Guardar en Google Sheets";
+        btn.disabled = false;
+        cerrarModalPizarraFlota();
+      }, 1000);
+    }
+
+    // MODAL NUEVA ZONA
     function abrirModalNuevaZona() {
       document.getElementById("nuevaZonaNum").value = "";
       document.getElementById("nuevaZonaNombre").value = "";
@@ -480,6 +1458,7 @@
 
       localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
       zonaActual = num;
+      localStorage.setItem("quilmes_ultima_zona", zonaActual);
       poblarSelectorZonas();
       cambiarZona(num);
       cerrarModalNuevaZona();
@@ -487,6 +1466,7 @@
       enviarBaseDatosASheet();
     }
 
+    // MODAL EDITAR SEMANA DE UNA ZONA
     function abrirModalEdicion() {
       if (vistaActual === "total") {
         alert("Selecciona una semana específica (Semana 1 a 4) para editar los días.");
@@ -516,15 +1496,15 @@
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-3">
             <span class="w-20 font-black text-slate-800 uppercase text-sm">${dia}</span>
             <div class="flex items-center gap-1">
-              <label class="text-xs text-slate-500 font-bold">Tn:</label>
-              <input type="number" step="0.1" id="tn_${dia}" value="${registro.Toneladas}" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm font-bold">
+              <label class="text-xs text-slate-500 font-bold" title="Peso neto ODIN">Tn Balanza:</label>
+              <input type="number" step="0.1" id="tn_${dia}" value="${registro.Toneladas}" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center">
             </div>
             <div class="flex items-center gap-1">
               <label class="text-xs text-slate-500 font-bold">Cdras Falt.:</label>
-              <input type="number" id="cdras_${dia}" value="${registro.CuadrasFaltantes}" class="w-16 border border-slate-300 rounded px-2 py-1 text-sm font-bold">
+              <input type="number" id="cdras_${dia}" value="${registro.CuadrasFaltantes}" class="w-16 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center">
             </div>
-            <div class="flex-1 min-w-[180px]">
-              <input type="text" placeholder="Novedad / motivo..." id="nov_${dia}" value="${registro.Novedades || ''}" class="w-full border border-slate-300 rounded px-2 py-1 text-sm">
+            <div class="flex-1 min-w-[200px]">
+              <input type="text" placeholder="Interno / Novedad balanza..." id="nov_${dia}" value="${registro.Novedades || ''}" class="w-full border border-slate-300 rounded px-2 py-1 text-sm">
             </div>
           </div>
         `;
@@ -539,7 +1519,7 @@
 
     async function guardarCambiosEnSheet() {
       const btn = document.getElementById("btnGuardarSheet");
-      btn.innerText = "Guardando en la Nube...";
+      btn.innerText = "Guardando...";
       btn.disabled = true;
 
       const numSemana = vistaActual.replace("semana", "");
@@ -564,6 +1544,7 @@
 
       localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
       renderizarVista();
+      if (modoDashboardActivo) renderizarDashboardGeneral();
 
       const guardoOk = await enviarBaseDatosASheet();
       if (guardoOk) {
@@ -574,7 +1555,7 @@
           cerrarModalEdicion();
         }, 1200);
       } else {
-        btn.innerText = "Guardado local (Reintentando...)";
+        btn.innerText = "Guardado local";
         setTimeout(() => {
           btn.disabled = false;
           btn.innerText = "Guardar en Google Sheets";
@@ -600,10 +1581,14 @@
       }
     }
 
-    window.addEventListener("DOMContentLoaded", () => sincronizarConNube());
+    window.addEventListener("DOMContentLoaded", () => iniciarAppUltraRapida());
     window.addEventListener("hashchange", () => {
       leerHashURL();
-      renderizarVista();
+      if (modoDashboardActivo) {
+        renderizarDashboardGeneral();
+      } else {
+        renderizarVista();
+      }
     });
   </script>
 </body>
