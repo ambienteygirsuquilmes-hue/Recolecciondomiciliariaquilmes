@@ -27,6 +27,7 @@
   <!-- URL DE APPS SCRIPT -->
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrEqL8JKIWLypa555me-lQDb761dnX4jBm5rENvi6hdj03vFSp4IEk7CZ2OE3E93gRKQ/exec";
+    const URL_MAPA_CANVA = "https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2";
   </script>
 
   <!-- CABECERA INSTITUCIONAL -->
@@ -43,10 +44,11 @@
       
       <!-- CONTROLES SUPERIORES -->
       <div class="flex flex-wrap items-center gap-2">
-        <button onclick="alternarMapa()" id="btnToggleMapa" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5">
-          <span>🗺️</span>
-          <span id="btnToggleMapaTexto">Ver Mapa Interactivo</span>
-        </button>
+        <!-- BOTÓN PARA VOLVER AL MAPA DE CANVA -->
+        <a href="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+          <span>⬅️</span>
+          <span>Volver al Mapa</span>
+        </a>
 
         <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
           <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
@@ -68,36 +70,8 @@
     </div>
   </header>
 
-  <!-- SECCIÓN VISOR CANVA -->
-  <section id="seccionMapaCanva" class="hidden max-w-6xl mx-auto w-full p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">🗺️</span>
-          <h2 class="text-lg font-black uppercase text-slate-900">Mapa Territorial Interactivo • Ambiente y GIRSU</h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <a href="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" target="_blank" rel="noopener noreferrer" class="text-xs font-bold uppercase text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
-            Abrir en pestaña nueva ↗
-          </a>
-        </div>
-      </div>
-      
-      <div class="relative w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-950 shadow-inner" style="padding-top: 56.25%;">
-        <iframe 
-          id="iframeCanva"
-          src="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" 
-          class="absolute top-0 left-0 w-full h-full border-0"
-          allowfullscreen="true" 
-          allow="fullscreen"
-          loading="lazy">
-        </iframe>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONTENIDO FICHA TÉCNICA -->
-  <main id="seccionFichaTecnica" class="max-w-6xl mx-auto w-full p-4 flex-1">
+  <!-- CONTENIDO DE FICHA TÉCNICA (LIMPIO, SIN CAJA GRIS) -->
+  <main class="max-w-6xl mx-auto w-full p-4 flex-1">
     
     <!-- HEADER ZONA -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -177,7 +151,7 @@
     </div>
   </main>
 
-  <!-- MODAL NUEVA ZONA -->
+  <!-- MODAL: AGREGAR NUEVA ZONA -->
   <div id="modalNuevaZona" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
@@ -188,12 +162,12 @@
       <div class="space-y-3">
         <div>
           <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Número o Nombre de Zona</label>
-          <input type="text" id="nuevaZonaNum" placeholder="Ej: 51 o Emporio San Cayetano" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
+          <input type="text" id="nuevaZonaNum" placeholder="Ej: 31 o Bernal Oeste" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
         </div>
 
         <div>
           <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Barrio / Límites / Referencia</label>
-          <input type="text" id="nuevaZonaNombre" placeholder="Ej: Quilmes Centro - Mitre a Paz" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <input type="text" id="nuevaZonaNombre" placeholder="Ej: Ezpeleta Oeste - Av. República de Francia" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
         </div>
 
         <div>
@@ -218,7 +192,7 @@
     </div>
   </div>
 
-  <!-- MODAL EDITAR SEMANA -->
+  <!-- MODAL: EDITAR DÍAS -->
   <div id="modalEdicion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
@@ -240,12 +214,10 @@
     </div>
   </div>
 
-  <!-- LÓGICA ULTRA RÁPIDA (STALE-WHILE-REVALIDATE) -->
   <script>
     let baseDatos = [];
     let zonaActual = "46";
     let vistaActual = "semana1";
-    let mapaAbierto = false;
 
     const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
@@ -254,24 +226,6 @@
       "Tarde": { bgBadge: "bg-[#0F9D58]", textBadge: "bg-emerald-50 text-[#0F9D58] border border-emerald-200", horario: "Entre las 12 y las 15 hs" },
       "Noche": { bgBadge: "bg-[#00A8CC]", textBadge: "bg-sky-50 text-[#0088A8] border border-sky-200", horario: "Entre las 19 y las 22 hs" }
     };
-
-    function alternarMapa() {
-      mapaAbierto = !mapaAbierto;
-      const seccionMapa = document.getElementById("seccionMapaCanva");
-      const btnTexto = document.getElementById("btnToggleMapaTexto");
-      const btn = document.getElementById("btnToggleMapa");
-
-      if (mapaAbierto) {
-        seccionMapa.classList.remove("hidden");
-        btnTexto.innerText = "Ocultar Mapa";
-        btn.classList.replace("bg-indigo-600", "bg-indigo-800");
-        seccionMapa.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        seccionMapa.classList.add("hidden");
-        btnTexto.innerText = "Ver Mapa Interactivo";
-        btn.classList.replace("bg-indigo-800", "bg-indigo-600");
-      }
-    }
 
     function limpiarTexto(txt) {
       if (!txt) return "";
@@ -282,7 +236,6 @@
       }
     }
 
-    // 1. INICIALIZACIÓN INSTANTÁNEA (0 SEGUNDOS)
     function iniciarAppInstantanea() {
       leerHashURL();
       const cacheLocal = localStorage.getItem("quilmes_datos_cache");
@@ -301,11 +254,9 @@
         renderizarVista();
       }
 
-      // Sincroniza en background sin bloquear la pantalla
       sincronizarSegundoPlano();
     }
 
-    // 2. SINCRONIZACIÓN EN SEGUNDO PLANO
     async function sincronizarSegundoPlano(esForzado = false) {
       const syncText = document.getElementById("syncText");
       if (esForzado) syncText.innerText = "Actualizando...";
@@ -339,6 +290,7 @@
       baseDatos = [];
       const zonas = [
         { num: "46", turno: "Mañana", nombre: "Bernal Oeste" },
+        { num: "31", turno: "Mañana", nombre: "Ezpeleta Oeste" },
         { num: "47", turno: "Mañana", nombre: "Bernal Oeste" },
         { num: "21", turno: "Tarde", nombre: "Quilmes Oeste" },
         { num: "15", turno: "Tarde", nombre: "Don Bosco" },
@@ -500,7 +452,6 @@
         : "Sin novedades registradas ni reclamos de cuadras pendientes.";
     }
 
-    // MODAL AGREGAR ZONA
     function abrirModalNuevaZona() {
       document.getElementById("nuevaZonaNum").value = "";
       document.getElementById("nuevaZonaNombre").value = "";
@@ -544,7 +495,6 @@
       cambiarZona(num);
       cerrarModalNuevaZona();
 
-      // Guardado asíncrono
       fetch(APPS_SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
@@ -553,7 +503,6 @@
       }).catch(e => console.warn("Guardado diferido"));
     }
 
-    // MODAL EDITAR SEMANA
     function abrirModalEdicion() {
       if (vistaActual === "total") {
         alert("Selecciona una semana específica (Semana 1 a 4) para editar los días.");
@@ -629,14 +578,12 @@
         }
       });
 
-      // Impacto visual instantáneo en pantalla
       localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
       renderizarVista();
       cerrarModalEdicion();
       btn.disabled = false;
       btn.innerText = "Guardar en Google Sheets";
 
-      // Envío de fondo a Google Sheets
       try {
         await fetch(APPS_SCRIPT_URL, {
           method: "POST",
