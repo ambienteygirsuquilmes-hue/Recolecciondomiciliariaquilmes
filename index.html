@@ -24,7 +24,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- NUEVA URL DE APPS SCRIPT CONECTADA -->
+  <!-- URL DE APPS SCRIPT -->
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrEqL8JKIWLypa555me-lQDb761dnX4jBm5rENvi6hdj03vFSp4IEk7CZ2OE3E93gRKQ/exec";
   </script>
@@ -42,11 +42,15 @@
       </div>
       
       <!-- CONTROLES -->
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
           <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
           <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer"></select>
         </div>
+
+        <button onclick="abrirModalNuevaZona()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
+          ➕ <span>Agregar Zona</span>
+        </button>
 
         <button onclick="abrirModalEdicion()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
           ✏️ <span>Editar Semana</span>
@@ -65,15 +69,17 @@
     <!-- HEADER ZONA -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <div id="badgeZona" class="w-16 h-16 rounded-2xl bg-rose-600 text-white font-black text-3xl flex items-center justify-center shadow">
+        <div id="badgeZona" class="w-16 h-16 rounded-2xl text-white font-black text-3xl flex items-center justify-center shadow transition-colors">
           46
         </div>
         <div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <h2 id="tituloZona" class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-none">Zona 46</h2>
-            <span id="badgeTurno" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800">Turno Mañana</span>
+            <span id="badgeTurno" class="text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm">
+              Turno Mañana • Entre las 05 y las 08 hs
+            </span>
           </div>
-          <p id="subtituloZona" class="text-sm font-semibold text-slate-500 mt-1">Municipio de Quilmes</p>
+          <p id="subtituloZona" class="text-sm font-semibold text-slate-500 mt-1.5">Municipio de Quilmes</p>
         </div>
       </div>
 
@@ -138,7 +144,52 @@
     </div>
   </main>
 
-  <!-- MODAL PARA EDITAR DÍAS Y GUARDAR EN GOOGLE SHEETS -->
+  <!-- MODAL: AGREGAR NUEVA ZONA -->
+  <div id="modalNuevaZona" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div class="flex items-center justify-between border-b pb-3 mb-4">
+        <h3 class="text-lg font-black uppercase text-slate-900">Agregar Nueva Zona</h3>
+        <button onclick="cerrarModalNuevaZona()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Número o Código de Zona</label>
+          <input type="text" id="nuevaZonaNum" placeholder="Ej: 51, 29a, 65b" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
+        </div>
+
+        <div>
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Nombre / Barrio / Límites</label>
+          <input type="text" id="nuevaZonaNombre" placeholder="Ej: Quilmes Centro - Mitre a Paz" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+
+        <div>
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Turno y Horario de Recolección</label>
+          <select id="nuevaZonaTurno" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold bg-white">
+            <option value="Mañana">Turno Mañana (Entre las 05 y las 08 hs)</option>
+            <option value="Tarde">Turno Tarde (Entre las 12 y las 15 hs)</option>
+            <option value="Noche">Turno Noche (Entre las 19 y las 22 hs)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Total de Cuadras de la Zona</label>
+          <input type="number" id="nuevaZonaCuadras" value="120" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
+        </div>
+      </div>
+
+      <div class="border-t pt-4 mt-5 flex items-center justify-between">
+        <button onclick="cerrarModalNuevaZona()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">
+          Cancelar
+        </button>
+        <button onclick="guardarNuevaZona()" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow">
+          Crear Zona
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR DÍAS -->
   <div id="modalEdicion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
@@ -168,6 +219,25 @@
     let vistaActual = "semana1";
 
     const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+    // CONFIGURACIÓN DE COLORES Y HORARIOS POR TURNO OFICIAL
+    const CONFIG_TURNOS = {
+      "Mañana": {
+        bgBadge: "bg-[#E65757]",
+        textBadge: "bg-rose-50 text-[#C93B3B] border border-rose-200",
+        horario: "Entre las 05 y las 08 hs"
+      },
+      "Tarde": {
+        bgBadge: "bg-[#0F9D58]",
+        textBadge: "bg-emerald-50 text-[#0F9D58] border border-emerald-200",
+        horario: "Entre las 12 y las 15 hs"
+      },
+      "Noche": {
+        bgBadge: "bg-[#00A8CC]",
+        textBadge: "bg-sky-50 text-[#0088A8] border border-sky-200",
+        horario: "Entre las 19 y las 22 hs"
+      }
+    };
 
     async function cargarDatos() {
       const syncText = document.getElementById("syncText");
@@ -204,14 +274,22 @@
 
     function generarPlantillaBase() {
       baseDatos = [];
-      const zonas = ["46", "47", "15", "21", "0", "1"];
+      const zonas = [
+        { num: "46", turno: "Mañana", nombre: "Bernal Oeste" },
+        { num: "47", turno: "Mañana", nombre: "Bernal Oeste" },
+        { num: "21", turno: "Tarde", nombre: "Quilmes Oeste" },
+        { num: "15", turno: "Tarde", nombre: "Don Bosco" },
+        { num: "0", turno: "Noche", nombre: "Quilmes Centro / Costa" },
+        { num: "1", turno: "Noche", nombre: "Quilmes Centro" }
+      ];
+
       zonas.forEach(z => {
         for (let s = 1; s <= 4; s++) {
           DIAS.forEach(d => {
             baseDatos.push({
-              Zona: z,
-              Nombre: `Zona ${z}`,
-              Turno: z === "46" ? "Mañana" : "Tarde",
+              Zona: z.num,
+              Nombre: z.nombre,
+              Turno: z.turno,
               Semana: `Semana ${s}`,
               Dia: d,
               Toneladas: 3.5,
@@ -273,10 +351,19 @@
       const registrosZona = baseDatos.filter(d => String(d.Zona).trim() === zonaActual);
       const regBase = registrosZona[0] || { Nombre: `Zona ${zonaActual}`, Turno: "Mañana", CuadrasTotales: 120 };
 
-      document.getElementById("badgeZona").innerText = zonaActual;
+      // OBTENER CONFIGURACIÓN DEL TURNO
+      const conf = CONFIG_TURNOS[regBase.Turno] || CONFIG_TURNOS["Mañana"];
+
+      const badgeElem = document.getElementById("badgeZona");
+      badgeElem.innerText = zonaActual;
+      badgeElem.className = `w-16 h-16 rounded-2xl text-white font-black text-3xl flex items-center justify-center shadow transition-colors ${conf.bgBadge}`;
+
       document.getElementById("tituloZona").innerText = `Zona ${zonaActual}`;
       document.getElementById("subtituloZona").innerText = regBase.Nombre;
-      document.getElementById("badgeTurno").innerText = `Turno ${regBase.Turno}`;
+
+      const badgeTurno = document.getElementById("badgeTurno");
+      badgeTurno.innerText = `Turno ${regBase.Turno} • ${conf.horario}`;
+      badgeTurno.className = `text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm ${conf.textBadge}`;
 
       let registrosFiltrados = [];
       const numSemana = vistaActual.replace("semana", "");
@@ -343,6 +430,65 @@
         : "Sin novedades registradas ni reclamos de cuadras pendientes.";
     }
 
+    // MODAL AGREGAR ZONA
+    function abrirModalNuevaZona() {
+      document.getElementById("nuevaZonaNum").value = "";
+      document.getElementById("nuevaZonaNombre").value = "";
+      document.getElementById("modalNuevaZona").classList.remove("hidden");
+    }
+
+    function cerrarModalNuevaZona() {
+      document.getElementById("modalNuevaZona").classList.add("hidden");
+    }
+
+    async function guardarNuevaZona() {
+      const num = document.getElementById("nuevaZonaNum").value.trim();
+      const nombre = document.getElementById("nuevaZonaNombre").value.trim() || `Zona ${num}`;
+      const turno = document.getElementById("nuevaZonaTurno").value;
+      const cuadras = parseInt(document.getElementById("nuevaZonaCuadras").value) || 120;
+
+      if (!num) {
+        alert("Por favor ingresa un número o código de zona.");
+        return;
+      }
+
+      // Crear las 4 semanas de Lunes a Sábado para la nueva zona
+      for (let s = 1; s <= 4; s++) {
+        DIAS.forEach(d => {
+          baseDatos.push({
+            Zona: num,
+            Nombre: nombre,
+            Turno: turno,
+            Semana: `Semana ${s}`,
+            Dia: d,
+            Toneladas: 3.5,
+            CuadrasFaltantes: 0,
+            CuadrasTotales: cuadras,
+            Novedades: ""
+          });
+        });
+      }
+
+      localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
+      zonaActual = num;
+      poblarSelectorZonas();
+      cambiarZona(num);
+      cerrarModalNuevaZona();
+
+      // Guardar también en Sheet
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(baseDatos)
+        });
+      } catch (e) {
+        console.warn("Zona guardada localmente.");
+      }
+    }
+
+    // MODAL EDITAR SEMANA
     function abrirModalEdicion() {
       if (vistaActual === "total") {
         alert("Selecciona una semana específica (Semana 1 a 4) para editar los días.");
