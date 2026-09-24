@@ -45,7 +45,7 @@
       <div class="flex flex-wrap items-center gap-2">
         <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
           <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
-          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer"></select>
+          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer max-w-[180px] truncate"></select>
         </div>
 
         <button onclick="abrirModalNuevaZona()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
@@ -66,25 +66,26 @@
   <!-- CONTENIDO -->
   <main class="max-w-6xl mx-auto w-full p-4 flex-1">
     
-    <!-- HEADER ZONA -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div id="badgeZona" class="w-16 h-16 rounded-2xl text-white font-black text-3xl flex items-center justify-center shadow transition-colors">
+    <!-- HEADER ZONA ADAPTABLE (SIN DESBORDES) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0 flex-1">
+        <!-- Badge inteligente: tamaño flexible y texto proporcionado -->
+        <div id="badgeZona" class="h-16 min-w-[4rem] max-w-[8rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap">
           46
         </div>
-        <div>
+        <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-2">
-            <h2 id="tituloZona" class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-none">Zona 46</h2>
-            <span id="badgeTurno" class="text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm">
+            <h2 id="tituloZona" class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-tight truncate">Zona 46</h2>
+            <span id="badgeTurno" class="text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
               Turno Mañana • Entre las 05 y las 08 hs
             </span>
           </div>
-          <p id="subtituloZona" class="text-sm font-semibold text-slate-500 mt-1.5">Municipio de Quilmes</p>
+          <p id="subtituloZona" class="text-sm font-semibold text-slate-500 mt-1 truncate">Municipio de Quilmes</p>
         </div>
       </div>
 
       <!-- BOTONES DE SEMANAS -->
-      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center">
         <button onclick="seleccionarVista('semana1')" id="btn-sem1" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition bg-white text-slate-900 shadow-sm">Semana 1</button>
         <button onclick="seleccionarVista('semana2')" id="btn-sem2" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 2</button>
         <button onclick="seleccionarVista('semana3')" id="btn-sem3" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 3</button>
@@ -154,12 +155,12 @@
 
       <div class="space-y-3">
         <div>
-          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Número o Código de Zona</label>
-          <input type="text" id="nuevaZonaNum" placeholder="Ej: 51, 29a, 65b" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Número o Nombre de Zona</label>
+          <input type="text" id="nuevaZonaNum" placeholder="Ej: 51 o Emporio San Cayetano" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
         </div>
 
         <div>
-          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Nombre / Barrio / Límites</label>
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Barrio / Límites / Referencia</label>
           <input type="text" id="nuevaZonaNombre" placeholder="Ej: Quilmes Centro - Mitre a Paz" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
         </div>
 
@@ -220,7 +221,6 @@
 
     const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-    // CONFIGURACIÓN DE COLORES Y HORARIOS POR TURNO OFICIAL
     const CONFIG_TURNOS = {
       "Mañana": {
         bgBadge: "bg-[#E65757]",
@@ -239,6 +239,16 @@
       }
     };
 
+    // FUNCIÓN PARA LIMPIAR TEXTO (%20 -> espacio)
+    function limpiarTexto(txt) {
+      if (!txt) return "";
+      try {
+        return decodeURIComponent(String(txt).trim());
+      } catch (e) {
+        return String(txt).replace(/%20/g, " ").trim();
+      }
+    }
+
     async function cargarDatos() {
       const syncText = document.getElementById("syncText");
       syncText.innerText = "Cargando...";
@@ -248,8 +258,12 @@
         const data = await respuesta.json();
         
         if (Array.isArray(data) && data.length > 0) {
-          baseDatos = data;
-          localStorage.setItem("quilmes_datos_cache", JSON.stringify(data));
+          baseDatos = data.map(d => ({
+            ...d,
+            Zona: limpiarTexto(d.Zona),
+            Nombre: limpiarTexto(d.Nombre)
+          }));
+          localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
           syncText.innerText = "En Línea";
         } else {
           generarPlantillaBase();
@@ -304,25 +318,25 @@
 
     function poblarSelectorZonas() {
       const selector = document.getElementById("selectorZona");
-      const zonas = [...new Set(baseDatos.map(d => String(d.Zona).trim()))];
+      const zonas = [...new Set(baseDatos.map(d => limpiarTexto(d.Zona)))];
       
       if (!zonas.includes(zonaActual) && zonas.length > 0) zonaActual = zonas[0];
       
       selector.innerHTML = zonas.map(z => 
-        `<option value="${z}" ${z === zonaActual ? 'selected' : ''}>Zona ${z}</option>`
+        `<option value="${z}" ${z === zonaActual ? 'selected' : ''}>${isNaN(z) ? z : 'Zona ' + z}</option>`
       ).join('');
     }
 
     function cambiarZona(zona) {
-      zonaActual = String(zona).trim();
-      window.location.hash = zonaActual;
+      zonaActual = limpiarTexto(zona);
+      window.location.hash = encodeURIComponent(zonaActual);
       renderizarVista();
     }
 
     function leerHashURL() {
       const hash = window.location.hash.replace("#", "").trim();
       if (hash) {
-        zonaActual = hash;
+        zonaActual = limpiarTexto(hash);
         const sel = document.getElementById("selectorZona");
         if (sel) sel.value = zonaActual;
       }
@@ -348,22 +362,30 @@
     }
 
     function renderizarVista() {
-      const registrosZona = baseDatos.filter(d => String(d.Zona).trim() === zonaActual);
+      const registrosZona = baseDatos.filter(d => limpiarTexto(d.Zona) === zonaActual);
       const regBase = registrosZona[0] || { Nombre: `Zona ${zonaActual}`, Turno: "Mañana", CuadrasTotales: 120 };
 
-      // OBTENER CONFIGURACIÓN DEL TURNO
       const conf = CONFIG_TURNOS[regBase.Turno] || CONFIG_TURNOS["Mañana"];
 
+      // AJUSTE DINÁMICO DEL BADGE (SEGÚN LARGO DEL TEXTO)
       const badgeElem = document.getElementById("badgeZona");
       badgeElem.innerText = zonaActual;
-      badgeElem.className = `w-16 h-16 rounded-2xl text-white font-black text-3xl flex items-center justify-center shadow transition-colors ${conf.bgBadge}`;
+      
+      let fontSizeClass = "text-3xl";
+      if (zonaActual.length > 3 && zonaActual.length <= 8) {
+        fontSizeClass = "text-xl";
+      } else if (zonaActual.length > 8) {
+        fontSizeClass = "text-sm";
+      }
 
-      document.getElementById("tituloZona").innerText = `Zona ${zonaActual}`;
+      badgeElem.className = `h-16 min-w-[4rem] max-w-[8rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap ${conf.bgBadge} ${fontSizeClass}`;
+
+      document.getElementById("tituloZona").innerText = isNaN(zonaActual) ? zonaActual : `Zona ${zonaActual}`;
       document.getElementById("subtituloZona").innerText = regBase.Nombre;
 
       const badgeTurno = document.getElementById("badgeTurno");
       badgeTurno.innerText = `Turno ${regBase.Turno} • ${conf.horario}`;
-      badgeTurno.className = `text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm ${conf.textBadge}`;
+      badgeTurno.className = `text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm whitespace-nowrap ${conf.textBadge}`;
 
       let registrosFiltrados = [];
       const numSemana = vistaActual.replace("semana", "");
@@ -430,7 +452,7 @@
         : "Sin novedades registradas ni reclamos de cuadras pendientes.";
     }
 
-    // MODAL AGREGAR ZONA
+    // AGREGAR ZONA
     function abrirModalNuevaZona() {
       document.getElementById("nuevaZonaNum").value = "";
       document.getElementById("nuevaZonaNombre").value = "";
@@ -442,8 +464,8 @@
     }
 
     async function guardarNuevaZona() {
-      const num = document.getElementById("nuevaZonaNum").value.trim();
-      const nombre = document.getElementById("nuevaZonaNombre").value.trim() || `Zona ${num}`;
+      const num = limpiarTexto(document.getElementById("nuevaZonaNum").value);
+      const nombre = limpiarTexto(document.getElementById("nuevaZonaNombre").value) || `Zona ${num}`;
       const turno = document.getElementById("nuevaZonaTurno").value;
       const cuadras = parseInt(document.getElementById("nuevaZonaCuadras").value) || 120;
 
@@ -452,7 +474,6 @@
         return;
       }
 
-      // Crear las 4 semanas de Lunes a Sábado para la nueva zona
       for (let s = 1; s <= 4; s++) {
         DIAS.forEach(d => {
           baseDatos.push({
@@ -461,7 +482,7 @@
             Turno: turno,
             Semana: `Semana ${s}`,
             Dia: d,
-            Toneladas: 3.5,
+            Toneladas: 0,
             CuadrasFaltantes: 0,
             CuadrasTotales: cuadras,
             Novedades: ""
@@ -475,7 +496,6 @@
       cambiarZona(num);
       cerrarModalNuevaZona();
 
-      // Guardar también en Sheet
       try {
         await fetch(APPS_SCRIPT_URL, {
           method: "POST",
@@ -488,7 +508,7 @@
       }
     }
 
-    // MODAL EDITAR SEMANA
+    // EDITAR SEMANA
     function abrirModalEdicion() {
       if (vistaActual === "total") {
         alert("Selecciona una semana específica (Semana 1 a 4) para editar los días.");
@@ -504,13 +524,13 @@
 
       DIAS.forEach(dia => {
         let registro = baseDatos.find(d => 
-          String(d.Zona).trim() === zonaActual &&
+          limpiarTexto(d.Zona) === zonaActual &&
           String(d.Semana).toLowerCase().includes(numSemana) &&
           String(d.Dia).toLowerCase() === dia.toLowerCase()
         );
 
         if (!registro) {
-          registro = { Zona: zonaActual, Nombre: `Zona ${zonaActual}`, Turno: "Mañana", Semana: `Semana ${numSemana}`, Dia: dia, Toneladas: 3.5, CuadrasFaltantes: 0, CuadrasTotales: 120, Novedades: "" };
+          registro = { Zona: zonaActual, Nombre: `Zona ${zonaActual}`, Turno: "Mañana", Semana: `Semana ${numSemana}`, Dia: dia, Toneladas: 0, CuadrasFaltantes: 0, CuadrasTotales: 120, Novedades: "" };
           baseDatos.push(registro);
         }
 
@@ -552,7 +572,7 @@
         const nov = document.getElementById(`nov_${dia}`).value;
 
         let reg = baseDatos.find(d => 
-          String(d.Zona).trim() === zonaActual &&
+          limpiarTexto(d.Zona) === zonaActual &&
           String(d.Semana).toLowerCase().includes(numSemana) &&
           String(d.Dia).toLowerCase() === dia.toLowerCase()
         );
