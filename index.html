@@ -40,9 +40,9 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- URL NUEVA DE APPS SCRIPT -->
+  <!-- URL RESTABLECIDA DE TU APPS SCRIPT ORIGINAL -->
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-bwLtM18GDyos2OwP2UwFEMklhf95PkDOIc4aKKgEiZR03WqIxtdc1IROYFqx89mZ/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIo23CkIocuCxw3xlhuiaKC6znKY5oD6v6iOR4kaHod14pi40hpMBiG-_vt8U9jYW8/exec";
   </script>
 
   <!-- CABECERA INSTITUCIONAL -->
@@ -638,7 +638,6 @@
       }
     }
 
-    // CARGA INMEDIATA EN 0.05 SEGUNDOS + SYNC EN SEGUNDO PLANO
     function iniciarAppUltraRapida() {
       leerHashURL();
       document.getElementById("inputCalendario").value = formatearFechaISO(fechaSeleccionada);
@@ -660,7 +659,6 @@
       actualizarBotonesSemana();
       renderizarVista();
 
-      // Sincronización transparente en segundo plano
       sincronizarConNube();
     }
 
