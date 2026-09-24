@@ -10,7 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Librería SheetJS para procesar Excel y CSV de ODIN -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
@@ -25,27 +24,47 @@
     }
   </script>
 
+  <!-- ESTILOS DE IMPRESIÓN OPERATIVA FORMAL (A4) -->
   <style>
-    @media print {
-      body { background-color: #ffffff !important; font-size: 12pt; }
-      header, .no-print, button, select, input, #modalEdicion, #modalNuevaZona, #modalPizarraFlota, #modalImportarOdin { display: none !important; }
-      main, #seccionDashboardGeneral { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-      .print-header { display: block !important; border-bottom: 2px solid #0f766e; padding-bottom: 8px; margin-bottom: 16px; }
-      .shadow-sm, .shadow { box-shadow: none !important; }
-      .border { border-color: #cbd5e1 !important; }
-      .page-break { page-break-inside: avoid; }
+    @media screen {
+      .solo-impresion { display: none !important; }
     }
-    .print-header { display: none; }
+    
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm 12mm 12mm 12mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-family: 'Asap Condensed', sans-serif !important;
+        font-size: 10pt !important;
+      }
+      header, .no-print, nav, button, select, input, #modalEdicion, #modalNuevaZona, #modalPizarraFlota, #modalImportarOdin, #seccionDashboardGeneral, #seccionFichaTecnica {
+        display: none !important;
+      }
+      .solo-impresion {
+        display: block !important;
+      }
+      .tabla-operativa th {
+        background-color: #f1f5f9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .page-break-inside-avoid {
+        page-break-inside: avoid;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- URL RESTABLECIDA DE TU APPS SCRIPT ORIGINAL -->
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIo23CkIocuCxw3xlhuiaKC6znKY5oD6v6iOR4kaHod14pi40hpMBiG-_vt8U9jYW8/exec";
   </script>
 
-  <!-- CABECERA INSTITUCIONAL -->
+  <!-- CABECERA INSTITUCIONAL EN PANTALLA -->
   <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 px-4 py-3 no-print">
     <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -64,31 +83,26 @@
           <span>Volver al Mapa</span>
         </a>
 
-        <!-- BOTÓN ALTERNAR DASHBOARD GENERAL / FICHA ZONA -->
         <button onclick="alternarDashboardGeneral()" id="btnToggleDashboard" class="bg-teal-700 hover:bg-teal-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-teal-800">
           <span>📊</span>
           <span id="btnToggleDashboardTexto">Dashboard General</span>
         </button>
 
-        <!-- SELECTOR DE FECHA / CALENDARIO -->
         <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
           <span class="text-xs font-black uppercase text-slate-500">📅</span>
           <input type="date" id="inputCalendario" onchange="seleccionarFechaCalendario(this.value)" class="bg-transparent font-bold text-xs text-slate-800 outline-none cursor-pointer">
         </div>
 
-        <!-- BOTÓN IMPORTAR ARCHIVO ODIN -->
         <button onclick="abrirModalImportarOdin()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-purple-800">
           <span>📂</span>
           <span>Cargar ODIN</span>
         </button>
 
-        <!-- PIZARRA DE FLOTA -->
         <button onclick="abrirModalPizarraFlota()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-emerald-800">
           <span>🚛</span>
           <span>Pizarra</span>
         </button>
 
-        <!-- SELECTOR DE ZONA -->
         <div id="contenedorSelectorZona" class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
           <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
           <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer max-w-[150px] truncate"></select>
@@ -102,8 +116,10 @@
           ✏️ <span>Editar</span>
         </button>
 
-        <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          🖨️ <span>Informe</span>
+        <!-- BOTÓN IMPRIMIR PARTE OPERATIVO -->
+        <button onclick="imprimirParteOperativo()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-slate-900">
+          <span>🖨️</span>
+          <span>Parte Operativo</span>
         </button>
 
         <button onclick="sincronizarConNube(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
@@ -114,23 +130,109 @@
   </header>
 
   <!-- ============================================================ -->
-  <!-- VISTA 1: DASHBOARD GENERAL CONSOLIDADO DEL MUNICIPIO          -->
+  <!-- VISTA EXCLUSIVA DE IMPRESIÓN FORMAL (PARTE OPERATIVO A4)     -->
   <!-- ============================================================ -->
-  <section id="seccionDashboardGeneral" class="hidden max-w-6xl mx-auto w-full p-4 flex-1">
-    
-    <!-- MEMBRETE DE IMPRESIÓN PARA DASHBOARD -->
-    <div class="print-header">
-      <div class="flex justify-between items-center">
+  <div id="documentoImpresionOperativa" class="solo-impresion w-full">
+    <!-- Encabezado Oficial -->
+    <div class="border-b-2 border-slate-900 pb-3 mb-4">
+      <div class="flex justify-between items-start">
         <div>
-          <h1 class="text-xl font-black uppercase text-slate-900 leading-tight">Secretaría de Ambiente y GIRSU</h1>
-          <p class="text-xs font-bold text-slate-600 uppercase">Municipio de Quilmes • Tablero Ejecutivo de Recolección y Logística Integral</p>
+          <h1 class="text-xl font-black uppercase tracking-tight text-slate-900">MUNICIPÍO DE QUILMES</h1>
+          <h2 class="text-sm font-extrabold uppercase text-emerald-800">Secretaría de Ambiente y GIRSU • Dirección de Higiene Urbana</h2>
+          <p class="text-xs font-bold text-slate-600 uppercase mt-0.5">Parte Técnico Operativo de Recolección, Cobertura y Pesaje Balanza ODIN</p>
         </div>
-        <div class="text-right text-xs text-slate-500 font-semibold" id="printFechaDashboard"></div>
+        <div class="text-right border-l-2 border-slate-300 pl-3">
+          <p class="text-xs font-black text-slate-900 uppercase" id="printDocTituloPeríodo">PARTE SEMANAL</p>
+          <p class="text-xs font-medium text-slate-600" id="printDocFechaEmision">Emisión: --/--/----</p>
+          <p class="text-xs font-medium text-slate-600">Base: Complejo Socioambiental Ecoparque</p>
+        </div>
       </div>
     </div>
 
-    <!-- CABECERA DASHBOARD -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 page-break">
+    <!-- Metadatos de la Zona -->
+    <div class="bg-slate-50 border border-slate-300 p-3 rounded-lg mb-4 grid grid-cols-4 gap-2 text-xs">
+      <div>
+        <span class="font-bold text-slate-500 uppercase block">Zona Operativa:</span>
+        <span class="text-base font-black text-slate-900" id="printDocZona">--</span>
+      </div>
+      <div>
+        <span class="font-bold text-slate-500 uppercase block">Delimitación / Sector:</span>
+        <span class="font-bold text-slate-800 truncate block" id="printDocBarrio">--</span>
+      </div>
+      <div>
+        <span class="font-bold text-slate-500 uppercase block">Turno y Horario:</span>
+        <span class="font-bold text-slate-800 block" id="printDocTurno">--</span>
+      </div>
+      <div>
+        <span class="font-bold text-slate-500 uppercase block">Cuadras Totales del Circuito:</span>
+        <span class="font-black text-slate-900 block" id="printDocCuadrasTotales">--</span>
+      </div>
+    </div>
+
+    <!-- Indicadores de Gestión del Período -->
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div class="border border-slate-300 p-2.5 rounded-lg text-center">
+        <span class="text-xs font-bold uppercase text-slate-500 block">Total Toneladas Recolectadas</span>
+        <span class="text-2xl font-black text-slate-900 block mt-0.5" id="printDocTotalTn">0.0 Tn</span>
+        <span class="text-[10px] text-slate-500 uppercase font-medium">Balanza Electrónica Ecoparque</span>
+      </div>
+      <div class="border border-slate-300 p-2.5 rounded-lg text-center">
+        <span class="text-xs font-bold uppercase text-slate-500 block">Efectividad Territorial</span>
+        <span class="text-2xl font-black text-emerald-700 block mt-0.5" id="printDocEfectividad">100%</span>
+        <span class="text-[10px] text-slate-500 uppercase font-medium">Porcentaje de Cobertura</span>
+      </div>
+      <div class="border border-slate-300 p-2.5 rounded-lg text-center">
+        <span class="text-xs font-bold uppercase text-slate-500 block">Faltante de Cuadras</span>
+        <span class="text-2xl font-black text-amber-700 block mt-0.5" id="printDocFaltantes">0</span>
+        <span class="text-[10px] text-slate-500 uppercase font-medium" id="printDocManzanas">~0 manzanas</span>
+      </div>
+    </div>
+
+    <!-- Tabla Operativa Diaria -->
+    <div class="border border-slate-300 rounded-lg overflow-hidden mb-5">
+      <table class="w-full text-left text-xs tabla-operativa border-collapse">
+        <thead>
+          <tr class="border-b border-slate-300 font-black uppercase text-slate-700">
+            <th class="p-2 border-r border-slate-300 w-24">Día / Período</th>
+            <th class="p-2 border-r border-slate-300 w-28 text-center">Camión / Interno</th>
+            <th class="p-2 border-r border-slate-300 w-24 text-right">Tn Balanza</th>
+            <th class="p-2 border-r border-slate-300 w-24 text-center">Cdras Prog.</th>
+            <th class="p-2 border-r border-slate-300 w-24 text-center">Faltante</th>
+            <th class="p-2 border-r border-slate-300 w-20 text-center">% Cumpl.</th>
+            <th class="p-2">Novedades / Causa de Faltante / Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="printDocCuerpoTabla" class="divide-y divide-slate-200">
+          <!-- Se completa dinámicamente -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bloque de Firmas y Responsables -->
+    <div class="page-break-inside-avoid border-t-2 border-slate-400 pt-8 mt-8 grid grid-cols-3 gap-6 text-center text-xs">
+      <div>
+        <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
+        <span class="font-black uppercase text-slate-800 block">Chofer / Dotación</span>
+        <span class="text-[10px] text-slate-500">Operador de Unidad</span>
+      </div>
+      <div>
+        <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
+        <span class="font-black uppercase text-slate-800 block">Supervisor Operativo</span>
+        <span class="text-[10px] text-slate-500">Control Territorial / Turno</span>
+      </div>
+      <div>
+        <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
+        <span class="font-black uppercase text-slate-800 block">Control Balanza Ecoparque</span>
+        <span class="text-[10px] text-slate-500">Validación Sistema ODIN</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- VISTA 1 EN PANTALLA: DASHBOARD GENERAL                       -->
+  <!-- ============================================================ -->
+  <section id="seccionDashboardGeneral" class="hidden max-w-6xl mx-auto w-full p-4 flex-1">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
           <span class="text-2xl">📊</span>
@@ -142,8 +244,7 @@
         <p class="text-sm font-semibold text-slate-500 mt-1" id="subtituloDashboardPeriodo">Consolidado general de pesajes y efectividad operativa</p>
       </div>
 
-      <!-- BOTONES DE PERÍODO DEL DASHBOARD -->
-      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center no-print">
+      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center">
         <button onclick="cambiarVistaDashboard('semana1')" id="dash-btn-sem1" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition bg-white text-slate-900 shadow-sm">Semana 1</button>
         <button onclick="cambiarVistaDashboard('semana2')" id="dash-btn-sem2" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 2</button>
         <button onclick="cambiarVistaDashboard('semana3')" id="dash-btn-sem3" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 3</button>
@@ -153,7 +254,7 @@
     </div>
 
     <!-- TARJETAS CONSOLIDADAS DEL MUNICIPIO -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5 page-break">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Residuos Ingresados</span>
         <div class="flex items-baseline gap-2 mt-1">
@@ -193,12 +294,11 @@
     </div>
 
     <!-- COMPARATIVA POR TURNOS OPERATIVOS -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm page-break">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
       <h3 class="text-base font-black uppercase text-slate-900 tracking-tight mb-4 flex items-center gap-2">
         <span>⏱️</span> Rendimiento Operativo por Turnos de Recolección
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Turno Mañana -->
         <div class="border border-rose-200 bg-rose-50/50 p-4 rounded-xl">
           <div class="flex justify-between items-center mb-2">
             <span class="text-xs font-extrabold uppercase text-[#C93B3B] bg-rose-100 px-2.5 py-0.5 rounded-full">
@@ -213,7 +313,6 @@
           <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasManana">0 zonas asignadas</p>
         </div>
 
-        <!-- Turno Tarde -->
         <div class="border border-emerald-200 bg-emerald-50/50 p-4 rounded-xl">
           <div class="flex justify-between items-center mb-2">
             <span class="text-xs font-extrabold uppercase text-[#0F9D58] bg-emerald-100 px-2.5 py-0.5 rounded-full">
@@ -228,7 +327,6 @@
           <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasTarde">0 zonas asignadas</p>
         </div>
 
-        <!-- Turno Noche -->
         <div class="border border-sky-200 bg-sky-50/50 p-4 rounded-xl">
           <div class="flex justify-between items-center mb-2">
             <span class="text-xs font-extrabold uppercase text-[#0088A8] bg-sky-100 px-2.5 py-0.5 rounded-full">
@@ -246,7 +344,7 @@
     </div>
 
     <!-- TABLA COMPARATIVA TERRITORIAL POR ZONAS -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm page-break">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 class="text-base font-black uppercase text-slate-900 tracking-tight flex items-center gap-2">
           <span>📋</span> Estado Operativo y Desempeño Territorial por Zona
@@ -273,23 +371,10 @@
   </section>
 
   <!-- ============================================================ -->
-  <!-- VISTA 2: FICHA TÉCNICA DETALLADA POR ZONA INDIVIDUAL         -->
+  <!-- VISTA 2 EN PANTALLA: FICHA DE ZONA                           -->
   <!-- ============================================================ -->
   <main id="seccionFichaTecnica" class="max-w-6xl mx-auto w-full p-4 flex-1">
-    
-    <!-- MEMBRETE DE IMPRESIÓN -->
-    <div class="print-header">
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-xl font-black uppercase text-slate-900 leading-tight">Secretaría de Ambiente y GIRSU</h1>
-          <p class="text-xs font-bold text-slate-600 uppercase">Municipio de Quilmes • Informe Técnico Operativo de Pesaje y Cobertura</p>
-        </div>
-        <div class="text-right text-xs text-slate-500 font-semibold" id="printFechaGeneracion"></div>
-      </div>
-    </div>
-
-    <!-- HEADER ZONA -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 page-break">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-4 min-w-0 flex-1">
         <div id="badgeZona" class="h-16 min-w-[4rem] max-w-[9rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap">
           --
@@ -305,8 +390,7 @@
         </div>
       </div>
 
-      <!-- BOTONES DE SEMANAS Y FECHAS -->
-      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center no-print">
+      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center">
         <button onclick="seleccionarVista('semana1')" id="btn-sem1" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition bg-white text-slate-900 shadow-sm">Semana 1</button>
         <button onclick="seleccionarVista('semana2')" id="btn-sem2" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 2</button>
         <button onclick="seleccionarVista('semana3')" id="btn-sem3" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 3</button>
@@ -315,8 +399,8 @@
       </div>
     </div>
 
-    <!-- TARJETAS PRINCIPALES -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5 page-break">
+    <!-- TARJETAS PRINCIPALES EN PANTALLA -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Toneladas Pesadas (Ecoparque)</span>
         <div class="flex items-baseline gap-2 mt-1">
@@ -350,7 +434,7 @@
     </div>
 
     <!-- DESGLOSE DIARIO CALENDARIO -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm page-break">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 id="tituloDesglose" class="text-base font-black uppercase text-slate-900 tracking-tight">Desglose Diario</h3>
         <span id="rangoFechasDesglose" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"></span>
@@ -359,7 +443,7 @@
     </div>
 
     <!-- NOVEDADES -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm page-break">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
       <h3 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Novedades territoriales / Cuadras pendientes / Relevos de Camiones</h3>
       <div id="cajaNovedades" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-semibold text-slate-700 min-h-[60px] flex items-center">
         Sin novedades registradas.
@@ -382,7 +466,6 @@
         <button onclick="cerrarModalImportarOdin()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
       </div>
 
-      <!-- FECHA DESTINO -->
       <div class="flex flex-wrap items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-200 mb-4">
         <div class="flex items-center gap-2">
           <label class="text-xs font-bold uppercase text-purple-900">Fecha del Reporte:</label>
@@ -393,7 +476,6 @@
         </span>
       </div>
 
-      <!-- SUBIR ARCHIVO -->
       <div class="border-2 border-dashed border-slate-300 hover:border-purple-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-50" onclick="document.getElementById('inputArchivoOdin').click()">
         <input type="file" id="inputArchivoOdin" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarArchivoOdin(event)">
         <div class="text-3xl mb-2">📊</div>
@@ -401,7 +483,6 @@
         <p class="text-xs text-slate-500 mt-1">Soporta formatos Excel (.xlsx, .xls) o CSV (.csv)</p>
       </div>
 
-      <!-- VISTA PREVIA -->
       <div class="mt-4 flex-1 overflow-y-auto border border-slate-200 rounded-xl hidden" id="contenedorVistaPreviaOdin">
         <table class="w-full text-left text-sm">
           <thead class="bg-slate-100 text-xs font-black uppercase text-slate-600 sticky top-0 border-b">
@@ -666,13 +747,6 @@
       const syncText = document.getElementById("syncText");
       if (forzar) syncText.innerText = "Cargando...";
 
-      const hoy = new Date();
-      const opciones = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-      const printFecha = document.getElementById("printFechaGeneracion");
-      const printFechaD = document.getElementById("printFechaDashboard");
-      if (printFecha) printFecha.innerText = "Emisión: " + hoy.toLocaleDateString('es-AR', opciones);
-      if (printFechaD) printFechaD.innerText = "Emisión: " + hoy.toLocaleDateString('es-AR', opciones);
-
       try {
         const res = await fetch(APPS_SCRIPT_URL + "?nocache=" + new Date().getTime(), {
           method: "GET",
@@ -809,7 +883,104 @@
     }
 
     // ============================================================
-    // RENDERIZADOR DEL DASHBOARD GENERAL
+    // GENERADOR DEL PARTE TÉCNICO OPERATIVO PARA IMPRESIÓN (A4)
+    // ============================================================
+    function imprimirParteOperativo() {
+      const registrosZona = baseDatos.filter(d => limpiarTexto(d.Zona) === zonaActual);
+      const cat = ZONAS_PREDEFINIDAS.find(p => p.num === zonaActual) || { nombre: `Zona ${zonaActual}`, turno: "Mañana", cuadras: 120 };
+      const regBase = registrosZona[0] || { Nombre: cat.nombre, Turno: cat.turno, CuadrasTotales: cat.cuadras || 120 };
+      const conf = CONFIG_TURNOS[regBase.Turno] || CONFIG_TURNOS["Mañana"];
+
+      const nombreMes = MESES[fechaSeleccionada.getMonth()];
+      const anio = fechaSeleccionada.getFullYear();
+      const numSemana = vistaActual.replace("semana", "");
+
+      // Metadatos
+      document.getElementById("printDocTituloPeríodo").innerText = vistaActual === "total" 
+        ? `INFORME MENSUAL • ${nombreMes.toUpperCase()} ${anio}`
+        : `PARTE SEMANAL • SEMANA ${numSemana} (${nombreMes.toUpperCase()} ${anio})`;
+
+      const hoy = new Date();
+      document.getElementById("printDocFechaEmision").innerText = `Emisión: ${hoy.toLocaleDateString('es-AR')} ${hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs`;
+      document.getElementById("printDocZona").innerText = isNaN(zonaActual) ? zonaActual : `ZONA ${zonaActual}`;
+      document.getElementById("printDocBarrio").innerText = regBase.Nombre;
+      document.getElementById("printDocTurno").innerText = `Turno ${regBase.Turno} (${conf.horario})`;
+
+      let registrosFiltrados = [];
+      let cuadrasBase = parseFloat(regBase.CuadrasTotales) || 120;
+
+      if (vistaActual === "total") {
+        registrosFiltrados = registrosZona;
+      } else {
+        registrosFiltrados = registrosZona.filter(d => String(d.Semana).toLowerCase().includes(numSemana));
+      }
+
+      let totalTn = 0;
+      let totalFaltantes = 0;
+
+      registrosFiltrados.forEach(r => {
+        totalTn += parseFloat(r.Toneladas) || 0;
+        totalFaltantes += parseInt(r.CuadrasFaltantes) || 0;
+      });
+
+      const divisorCuadras = vistaActual === "total" ? cuadrasBase * 4 : cuadrasBase;
+      const efectividad = Math.max(0, Math.min(100, (((divisorCuadras - totalFaltantes) / divisorCuadras) * 100))).toFixed(1);
+
+      document.getElementById("printDocCuadrasTotales").innerText = `${cuadrasBase} cuadras / servicio`;
+      document.getElementById("printDocTotalTn").innerText = `${totalTn.toFixed(1)} Tn`;
+      document.getElementById("printDocEfectividad").innerText = `${efectividad}%`;
+      document.getElementById("printDocFaltantes").innerText = `${totalFaltantes} cuadras`;
+      document.getElementById("printDocManzanas").innerText = `~${Math.round(totalFaltantes / 4)} manzanas`;
+
+      // Tabla Operativa
+      const cuerpo = document.getElementById("printDocCuerpoTabla");
+      cuerpo.innerHTML = "";
+
+      const items = vistaActual === "total" ? ["Semana 1", "Semana 2", "Semana 3", "Semana 4"] : DIAS;
+
+      items.forEach((item, index) => {
+        const itemReg = registrosFiltrados.find(r => 
+          vistaActual === "total" 
+            ? String(r.Semana).toLowerCase().includes(item.toLowerCase())
+            : String(r.Dia).toLowerCase() === item.toLowerCase()
+        ) || { Toneladas: 0, CuadrasFaltantes: 0, Novedades: "" };
+
+        const faltan = parseInt(itemReg.CuadrasFaltantes) || 0;
+        const efectDia = Math.max(0, Math.min(100, (((cuadrasBase - faltan) / cuadrasBase) * 100))).toFixed(0);
+
+        let interno = "Asignado";
+        let observaciones = itemReg.Novedades || "Sin novedades operativas";
+        if (itemReg.Novedades && itemReg.Novedades.includes("Int. ")) {
+          const partes = itemReg.Novedades.split(" | ");
+          interno = partes[0].trim();
+          observaciones = partes.slice(1).join(" | ").trim() || "Servicio completado";
+        }
+
+        let etiquetaDia = item;
+        if (vistaActual !== "total") {
+          const diaNum = (parseInt(numSemana) - 1) * 7 + index + 1;
+          etiquetaDia = `${item} ${diaNum}/${fechaSeleccionada.getMonth() + 1}`;
+        }
+
+        cuerpo.innerHTML += `
+          <tr class="border-b border-slate-200">
+            <td class="p-2 border-r border-slate-300 font-black text-slate-900">${etiquetaDia}</td>
+            <td class="p-2 border-r border-slate-300 text-center font-bold text-slate-800">${interno}</td>
+            <td class="p-2 border-r border-slate-300 text-right font-black text-slate-900">${parseFloat(itemReg.Toneladas || 0).toFixed(1)} Tn</td>
+            <td class="p-2 border-r border-slate-300 text-center font-bold text-slate-700">${cuadrasBase}</td>
+            <td class="p-2 border-r border-slate-300 text-center font-bold ${faltan > 0 ? 'text-amber-800' : 'text-slate-400'}">${faltan > 0 ? faltan : '-'}</td>
+            <td class="p-2 border-r border-slate-300 text-center font-extrabold ${efectDia < 90 ? 'text-amber-800' : 'text-emerald-800'}">${efectDia}%</td>
+            <td class="p-2 text-slate-700">${observaciones}</td>
+          </tr>
+        `;
+      });
+
+      // Disparar ventana de impresión formal
+      window.print();
+    }
+
+    // ============================================================
+    // RENDERIZADOR DEL DASHBOARD GENERAL EN PANTALLA
     // ============================================================
     function cambiarVistaDashboard(vista) {
       vistaDashboard = vista;
@@ -1072,7 +1243,7 @@
         }
 
         contDias.innerHTML += `
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center page-break">
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
             <span class="text-xs font-black uppercase text-slate-500 block">${etiquetaCalendario}</span>
             <span class="text-xl font-black text-slate-900 block mt-1">${parseFloat(itemReg.Toneladas || 0).toFixed(1)} <span class="text-xs font-normal">Tn</span></span>
             <span class="text-xs font-bold mt-1 inline-block ${faltan > 0 ? 'text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded' : 'text-emerald-700'}">
