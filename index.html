@@ -24,10 +24,9 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- URL DE APPS SCRIPT -->
+  <!-- URL NUEVA DE TU APPS SCRIPT -->
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrEqL8JKIWLypa555me-lQDb761dnX4jBm5rENvi6hdj03vFSp4IEk7CZ2OE3E93gRKQ/exec";
-    const URL_MAPA_CANVA = "https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHi-WdUGvJcH7HxK2pXheSx6zGsez9LnzRelmINJVlWrS0AZfTygbxjohgw2AFUEtUmg/exec";
   </script>
 
   <!-- CABECERA INSTITUCIONAL -->
@@ -44,8 +43,7 @@
       
       <!-- CONTROLES SUPERIORES -->
       <div class="flex flex-wrap items-center gap-2">
-        <!-- BOTÓN PARA VOLVER AL MAPA DE CANVA -->
-        <a href="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+        <a href="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girSU/page-2" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5">
           <span>⬅️</span>
           <span>Volver al Mapa</span>
         </a>
@@ -63,14 +61,14 @@
           ✏️ <span>Editar</span>
         </button>
 
-        <button onclick="forzarSincronizacion()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          🔄 <span id="syncText">En Línea</span>
+        <button onclick="sincronizarConNube(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
+          🔄 <span id="syncText">Cargando...</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- CONTENIDO DE FICHA TÉCNICA (LIMPIO, SIN CAJA GRIS) -->
+  <!-- CONTENIDO DE FICHA TÉCNICA -->
   <main class="max-w-6xl mx-auto w-full p-4 flex-1">
     
     <!-- HEADER ZONA -->
@@ -236,34 +234,17 @@
       }
     }
 
-    function iniciarAppInstantanea() {
-      leerHashURL();
-      const cacheLocal = localStorage.getItem("quilmes_datos_cache");
-      
-      if (cacheLocal) {
-        try {
-          baseDatos = JSON.parse(cacheLocal);
-          poblarSelectorZonas();
-          renderizarVista();
-        } catch (e) {
-          generarPlantillaBase();
-        }
-      } else {
-        generarPlantillaBase();
-        poblarSelectorZonas();
-        renderizarVista();
-      }
-
-      sincronizarSegundoPlano();
-    }
-
-    async function sincronizarSegundoPlano(esForzado = false) {
+    async function sincronizarConNube(forzar = false) {
       const syncText = document.getElementById("syncText");
-      if (esForzado) syncText.innerText = "Actualizando...";
+      syncText.innerText = "Cargando...";
 
       try {
-        const respuesta = await fetch(APPS_SCRIPT_URL, { cache: "no-store" });
-        const data = await respuesta.json();
+        const res = await fetch(APPS_SCRIPT_URL + "?nocache=" + new Date().getTime(), {
+          method: "GET",
+          redirect: "follow"
+        });
+        
+        const data = await res.json();
         
         if (Array.isArray(data) && data.length > 0) {
           baseDatos = data.map(d => ({
@@ -272,18 +253,26 @@
             Nombre: limpiarTexto(d.Nombre)
           }));
           localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
-          poblarSelectorZonas();
-          renderizarVista();
           syncText.innerText = "En Línea";
+        } else {
+          if (baseDatos.length === 0) generarPlantillaBase();
+          syncText.innerText = "Planilla Vacía";
         }
       } catch (err) {
-        console.warn("Sync background:", err);
-        syncText.innerText = "Modo Local";
+        console.warn("Fallo conectando a Sheet:", err);
+        const cache = localStorage.getItem("quilmes_datos_cache");
+        if (cache) {
+          baseDatos = JSON.parse(cache);
+          syncText.innerText = "Modo Local";
+        } else {
+          generarPlantillaBase();
+          syncText.innerText = "Datos Base";
+        }
       }
-    }
 
-    function forzarSincronizacion() {
-      sincronizarSegundoPlano(true);
+      poblarSelectorZonas();
+      leerHashURL();
+      renderizarVista();
     }
 
     function generarPlantillaBase() {
@@ -495,12 +484,7 @@
       cambiarZona(num);
       cerrarModalNuevaZona();
 
-      fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(baseDatos)
-      }).catch(e => console.warn("Guardado diferido"));
+      enviarBaseDatosASheet();
     }
 
     function abrirModalEdicion() {
@@ -555,7 +539,7 @@
 
     async function guardarCambiosEnSheet() {
       const btn = document.getElementById("btnGuardarSheet");
-      btn.innerText = "Guardando...";
+      btn.innerText = "Guardando en la Nube...";
       btn.disabled = true;
 
       const numSemana = vistaActual.replace("semana", "");
@@ -580,23 +564,43 @@
 
       localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
       renderizarVista();
-      cerrarModalEdicion();
-      btn.disabled = false;
-      btn.innerText = "Guardar en Google Sheets";
 
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(baseDatos)
-        });
-      } catch (err) {
-        console.error("Error envío background:", err);
+      const guardoOk = await enviarBaseDatosASheet();
+      if (guardoOk) {
+        btn.innerText = "¡Guardado en Google Sheets!";
+        setTimeout(() => {
+          btn.innerText = "Guardar en Google Sheets";
+          btn.disabled = false;
+          cerrarModalEdicion();
+        }, 1200);
+      } else {
+        btn.innerText = "Guardado local (Reintentando...)";
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerText = "Guardar en Google Sheets";
+          cerrarModalEdicion();
+        }, 1500);
       }
     }
 
-    window.addEventListener("DOMContentLoaded", iniciarAppInstantanea);
+    async function enviarBaseDatosASheet() {
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(baseDatos)
+        });
+        document.getElementById("syncText").innerText = "En Línea";
+        return true;
+      } catch (e) {
+        console.error("Error enviando a Apps Script:", e);
+        return false;
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => sincronizarConNube());
     window.addEventListener("hashchange", () => {
       leerHashURL();
       renderizarVista();
