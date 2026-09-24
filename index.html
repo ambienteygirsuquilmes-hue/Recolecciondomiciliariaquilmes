@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recolección Domiciliaria + Contenerización | Secretaría de Ambiente y GIRSU</title>
+  
+  <!-- Fuente Asap Condensed -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Asap Condensed"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <!-- ENLACE DIRECTO A TU APPS SCRIPT -->
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJwk_k9hIsGVEB8Ix4zX0z-jVaykYjioQmx9-RAuVRfSHQnPGwevjupy8rLXgFKEAk1g/exec";
+  </script>
+
+  <!-- CABECERA INSTITUCIONAL -->
+  <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 leading-tight">
+          Recolección Domiciliaria + Contenerización
+        </h1>
+        <p class="text-xs md:text-sm font-bold text-emerald-700 uppercase tracking-wide">
+          Secretaría de Ambiente y GIRSU • Municipio de Quilmes
+        </p>
+      </div>
+      
+      <!-- SELECTOR DE ZONA Y ESTADO EN VIVO -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2 py-1">
+          <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
+          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer">
+            <!-- Se cargan dinámicamente -->
+          </select>
+        </div>
+
+        <button onclick="cargarDatos()" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition-colors shadow">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span id="syncText">Sincronizar</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="max-w-6xl mx-auto w-full p-4 flex-1">
+    
+    <!-- ENCABEZADO DE ZONA SELECCIONADA -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div id="badgeZona" class="w-16 h-16 rounded-2xl bg-rose-600 text-white font-black text-3xl flex items-center justify-center shadow-md">
+          46
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 id="tituloZona" class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-none">Zona 46</h2>
+            <span id="badgeTurno" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800">Turno Mañana (05 a 08 hs)</span>
+          </div>
+          <p id="subtituloZona" class="text-sm font-semibold text-slate-500 mt-1">Bernal Oeste • Límites: Av. Tomás Flores, A. Pedemonte</p>
+        </div>
+      </div>
+
+      <!-- BOTONES DE NAVEGACIÓN TEMPORAL (SEMANAS Y TOTAL) -->
+      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+        <button onclick="seleccionarVista('semana1')" id="btn-sem1" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-white text-slate-900 shadow-sm">Semana 1</button>
+        <button onclick="seleccionarVista('semana2')" id="btn-sem2" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all text-slate-600 hover:text-slate-900">Semana 2</button>
+        <button onclick="seleccionarVista('semana3')" id="btn-sem3" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all text-slate-600 hover:text-slate-900">Semana 3</button>
+        <button onclick="seleccionarVista('semana4')" id="btn-sem4" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all text-slate-600 hover:text-slate-900">Semana 4</button>
+        <button onclick="seleccionarVista('total')" id="btn-total" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm">Total del Mes</button>
+      </div>
+    </div>
+
+    <!-- TARJETAS DE INDICADORES PRINCIPALES -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+      
+      <!-- Toneladas -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Toneladas Recolectadas</span>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span id="kpiToneladas" class="text-4xl md:text-5xl font-black text-slate-900">0.0</span>
+          <span class="text-sm font-bold text-slate-500 uppercase">Tn</span>
+        </div>
+        <p id="kpiToneladasSub" class="text-xs font-medium text-slate-400 mt-2">Suma operativa acumulada</p>
+      </div>
+
+      <!-- Faltante de Cuadras y Manzanas -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Faltante de Cuadras</span>
+          <span id="badgeManzanas" class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase">~0 manzanas</span>
+        </div>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span id="kpiCuadras" class="text-4xl md:text-5xl font-black text-amber-600">0</span>
+          <span id="kpiCuadrasTotal" class="text-sm font-bold text-slate-500 uppercase">/ 0 cuadras</span>
+        </div>
+        <!-- Barra de Cobertura -->
+        <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3 overflow-hidden">
+          <div id="barraProgreso" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- Cumplimiento Operativo -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Efectividad / Cumplimiento</span>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span id="kpiCumplimiento" class="text-4xl md:text-5xl font-black text-emerald-600">100%</span>
+        </div>
+        <p class="text-xs font-medium text-slate-400 mt-2">Relación cuadras recorridas vs totales</p>
+      </div>
+
+    </div>
+
+    <!-- DETALLE DÍA POR DÍA -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
+      <h3 id="tituloDesglose" class="text-base font-black uppercase text-slate-900 tracking-tight mb-3">
+        Desglose Diario de la Semana
+      </h3>
+      <div id="contenedorDias" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <!-- Render dinámico de Lunes a Sábado -->
+      </div>
+    </div>
+
+    <!-- NOVEDADES Y OBSERVACIONES -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+      <h3 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Novedades territoriales / Cuadras pendientes</h3>
+      <div id="cajaNovedades" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-semibold text-slate-700 min-h-[60px] flex items-center">
+        Sin novedades registradas.
+      </div>
+    </div>
+
+  </main>
+
+  <!-- LÓGICA DE DATOS Y CONEXIÓN EN VIVO -->
+  <script>
+    let baseDatos = [];
+    let zonaActual = "46";
+    let vistaActual = "semana1"; // semana1, semana2, semana3, semana4, total
+
+    const TURNOS = {
+      "Mañana": { badge: "bg-rose-100 text-rose-800", box: "bg-rose-600", horario: "05 a 08 hs" },
+      "Tarde": { badge: "bg-emerald-100 text-emerald-800", box: "bg-emerald-600", horario: "12 a 15 hs" },
+      "Noche": { badge: "bg-sky-100 text-sky-800", box: "bg-sky-600", horario: "19 a 22 hs" }
+    };
+
+    // 1. CARGAR DATOS DESDE GOOGLE APPS SCRIPT
+    async function cargarDatos() {
+      const syncText = document.getElementById("syncText");
+      syncText.innerText = "Cargando...";
+
+      try {
+        const respuesta = await fetch(APPS_SCRIPT_URL);
+        const data = await respuesta.json();
+        
+        if (data && data.length > 0) {
+          baseDatos = data;
+          localStorage.setItem("quilmes_datos_cache", JSON.stringify(data));
+          syncText.innerText = "Al día";
+        } else {
+          usarDatosDeEjemplo();
+          syncText.innerText = "Planilla Vacía";
+        }
+      } catch (error) {
+        console.warn("Fallo de red, buscando en caché local:", error);
+        const cache = localStorage.getItem("quilmes_datos_cache");
+        if (cache) {
+          baseDatos = JSON.parse(cache);
+          syncText.innerText = "Modo Caché";
+        } else {
+          usarDatosDeEjemplo();
+          syncText.innerText = "Datos Base";
+        }
+      }
+
+      poblarSelectorZonas();
+      leerHashURL();
+      renderizarVista();
+    }
+
+    // Datos de respaldo iniciales si la planilla está recién creada y vacía
+    function usarDatosDeEjemplo() {
+      baseDatos = [
+        { Zona: "46", Nombre: "Bernal Oeste", Turno: "Mañana", Semana: "Semana 1", Dia: "Lunes", Toneladas: 3.5, CuadrasFaltantes: 0, CuadrasTotales: 120, Novedades: "Servicio normal" },
+        { Zona: "46", Nombre: "Bernal Oeste", Turno: "Mañana", Semana: "Semana 1", Dia: "Martes", Toneladas: 3.2, CuadrasFaltantes: 2, CuadrasTotales: 120, Novedades: "C. 812 por calle anegada" },
+        { Zona: "46", Nombre: "Bernal Oeste", Turno: "Mañana", Semana: "Semana 1", Dia: "Miércoles", Toneladas: 3.8, CuadrasFaltantes: 0, CuadrasTotales: 120, Novedades: "Completado" },
+        { Zona: "46", Nombre: "Bernal Oeste", Turno: "Mañana", Semana: "Semana 1", Dia: "Jueves", Toneladas: 3.1, CuadrasFaltantes: 0, CuadrasTotales: 120, Novedades: "Completado" },
+        { Zona: "46", Nombre: "Bernal Oeste", Turno: "Mañana", Semana: "Semana 1", Dia: "Viernes", Toneladas: 4.0, CuadrasFaltantes: 4, CuadrasTotales: 120, Novedades: "Av. Tomás Flores por obras" },
+        { Zona: "46", Nombre: "Bernal Oeste", Turno: "Mañana", Semana: "Semana 1", Dia: "Sábado", Toneladas: 3.0, CuadrasFaltantes: 0, CuadrasTotales: 120, Novedades: "Completado" },
+      ];
+    }
+
+    // 2. POBLAR SELECTOR DE ZONAS
+    function poblarSelectorZonas() {
+      const selector = document.getElementById("selectorZona");
+      const zonasUnicas = [...new Set(baseDatos.map(d => String(d.Zona).trim()))];
+      
+      if (!zonasUnicas.includes(zonaActual) && zonasUnicas.length > 0) {
+        zonaActual = zonasUnicas[0];
+      }
+
+      selector.innerHTML = zonasUnicas.map(z => 
+        `<option value="${z}" ${z === zonaActual ? 'selected' : ''}>Zona ${z}</option>`
+      ).join('');
+    }
+
+    // 3. CAMBIAR ZONA O LEER HASH DE CANVA (#46, #47)
+    function cambiarZona(zona) {
+      zonaActual = String(zona).trim();
+      window.location.hash = zonaActual;
+      renderizarVista();
+    }
+
+    function leerHashURL() {
+      const hash = window.location.hash.replace("#", "").trim();
+      if (hash) {
+        zonaActual = hash;
+        const selector = document.getElementById("selectorZona");
+        if (selector) selector.value = zonaActual;
+      }
+    }
+
+    // 4. CAMBIAR PESTAÑA (SEMANA 1-4 O TOTAL)
+    function seleccionarVista(vista) {
+      vistaActual = vista;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("bg-white", "bg-emerald-600", "text-white", "text-slate-900", "shadow-sm");
+        btn.classList.add("text-slate-600");
+      });
+
+      const activo = document.getElementById(`btn-${vista === 'total' ? 'total' : vista.replace('semana', 'sem')}`);
+      if (activo) {
+        activo.classList.remove("text-slate-600");
+        if (vista === 'total') {
+          activo.classList.add("bg-emerald-600", "text-white", "shadow-sm");
+        } else {
+          activo.classList.add("bg-white", "text-slate-900", "shadow-sm");
+        }
+      }
+
+      renderizarVista();
+    }
+
+    // 5. RENDERIZAR INTERFAZ
+    function renderizarVista() {
+      // Filtrar registros de la zona
+      const registrosZona = baseDatos.filter(d => String(d.Zona).trim() === zonaActual);
+      
+      const registroBase = registrosZona[0] || { Nombre: `Zona ${zonaActual}`, Turno: "Mañana", CuadrasTotales: 120 };
+      const configTurno = TURNOS[registroBase.Turno] || TURNOS["Mañana"];
+
+      // Encabezado
+      document.getElementById("badgeZona").innerText = zonaActual;
+      document.getElementById("badgeZona").className = `w-16 h-16 rounded-2xl text-white font-black text-3xl flex items-center justify-center shadow-md ${configTurno.box}`;
+      document.getElementById("tituloZona").innerText = `Zona ${zonaActual}`;
+      document.getElementById("badgeTurno").innerText = `Turno ${registroBase.Turno} (${configTurno.horario})`;
+      document.getElementById("badgeTurno").className = `text-xs font-bold uppercase px-2.5 py-0.5 rounded-full ${configTurno.badge}`;
+      document.getElementById("subtituloZona").innerText = registroBase.Nombre || "Municipio de Quilmes";
+
+      let registrosFiltrados = [];
+      const numSemana = vistaActual.replace("semana", "");
+
+      if (vistaActual === "total") {
+        registrosFiltrados = registrosZona;
+        document.getElementById("tituloDesglose").innerText = "Resumen de las Semanas del Mes";
+      } else {
+        registrosFiltrados = registrosZona.filter(d => String(d.Semana).toLowerCase().includes(numSemana));
+        document.getElementById("tituloDesglose").innerText = `Desglose Diario • Semana ${numSemana}`;
+      }
+
+      // Cálculos
+      let totalTn = 0;
+      let totalFaltantes = 0;
+      let cuadrasTotales = parseFloat(registroBase.CuadrasTotales) || 120;
+      let novedades = [];
+
+      registrosFiltrados.forEach(r => {
+        totalTn += parseFloat(r.Toneladas) || 0;
+        totalFaltantes += parseInt(r.CuadrasFaltantes) || 0;
+        if (r.Novedades && r.Novedades !== "Completado" && r.Novedades !== "Servicio normal") {
+          novedades.push(`[${r.Dia || r.Semana}] ${r.Novedades}`);
+        }
+      });
+
+      // Si es consolidado del mes, las cuadras totales operativas se multiplican por semanas con datos
+      const cuadrasBaseCalculo = vistaActual === "total" ? cuadrasTotales * 4 : cuadrasTotales;
+      const coberturaPct = Math.max(0, Math.min(100, (((cuadrasBaseCalculo - totalFaltantes) / cuadrasBaseCalculo) * 100))).toFixed(1);
+      const manzanas = Math.round(totalFaltantes / 4);
+
+      // Inyectar KPIs
+      document.getElementById("kpiToneladas").innerText = totalTn.toFixed(1);
+      document.getElementById("kpiCuadras").innerText = totalFaltantes;
+      document.getElementById("kpiCuadrasTotal").innerText = `/ ${cuadrasBaseCalculo} cuadras`;
+      document.getElementById("badgeManzanas").innerText = `~${manzanas} ${manzanas === 1 ? 'manzana' : 'manzanas'}`;
+      document.getElementById("kpiCumplimiento").innerText = `${coberturaPct}%`;
+      document.getElementById("barraProgreso").style.width = `${coberturaPct}%`;
+
+      // Render desglose de días o semanas
+      const contDias = document.getElementById("contenedorDias");
+      contDias.innerHTML = "";
+
+      const itemsAMostrar = vistaActual === "total" 
+        ? ["Semana 1", "Semana 2", "Semana 3", "Semana 4"]
+        : ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+      itemsAMostrar.forEach(item => {
+        const reg = registrosFiltrados.find(r => 
+          vistaActual === "total" 
+            ? String(r.Semana).toLowerCase().includes(item.toLowerCase())
+            : String(r.Dia).toLowerCase() === item.toLowerCase()
+        ) || { Toneladas: 0, CuadrasFaltantes: 0 };
+
+        const faltan = parseInt(reg.CuadrasFaltantes) || 0;
+
+        contDias.innerHTML += `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+            <span class="text-xs font-bold uppercase text-slate-500 block">${item}</span>
+            <span class="text-xl font-black text-slate-900 block mt-1">${parseFloat(reg.Toneladas || 0).toFixed(1)} <span class="text-xs font-normal">Tn</span></span>
+            <span class="text-xs font-bold mt-1 inline-block ${faltan > 0 ? 'text-amber-700 bg-amber-100 px-2 py-0.5 rounded' : 'text-emerald-700'}">
+              ${faltan > 0 ? `-${faltan} cdras` : '✓ 100%'}
+            </span>
+          </div>
+        `;
+      });
+
+      // Inyectar Novedades
+      const cajaNov = document.getElementById("cajaNovedades");
+      if (novedades.length > 0) {
+        cajaNov.innerHTML = `<ul class="list-disc pl-4 space-y-1">${novedades.map(n => `<li>${n}</li>`).join('')}</ul>`;
+      } else {
+        cajaNov.innerText = "Sin novedades registradas ni reclamos de cuadras pendientes.";
+      }
+    }
+
+    // Inicializar al cargar la página
+    window.addEventListener("DOMContentLoaded", cargarDatos);
+    window.addEventListener("hashchange", () => {
+      leerHashURL();
+      renderizarVista();
+    });
+  </script>
+</body>
+</html>
