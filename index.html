@@ -48,44 +48,42 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 8mm 10mm 8mm 10mm;
+        margin: 7mm 9mm 7mm 9mm;
       }
-      body {
+      html, body {
         background: #ffffff !important;
         color: #0f172a !important;
         font-family: 'Asap Condensed', sans-serif !important;
         font-size: 9.5pt !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
-      /* Oculta estrictamente TODA la pantalla interactiva */
-      header, 
-      main, 
-      footer, 
-      nav, 
-      button, 
-      select, 
-      input, 
-      .no-print,
-      #seccionFichaTecnica,
-      #seccionDashboardGeneral,
-      #modalEdicion, 
-      #modalNuevaZona, 
-      #modalPizarraFlota, 
-      #modalImportarOdin, 
-      #toastNotificacion, 
-      #resultadosBusquedaRapida {
+      /* Regla estricta: OCULTA ABSOLUTAMENTE TODO lo que no sea el parte oficial */
+      body > *:not(#documentoImpresionOperativa) {
         display: none !important;
       }
-      /* Muestra ÚNICAMENTE el parte oficial formal */
-      .solo-impresion {
+      /* Muestra ÚNICAMENTE el parte oficial formal en tamaño exacto */
+      #documentoImpresionOperativa {
         display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
       }
       .tabla-operativa th {
-        background-color: #f8fafc !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+      }
+      .tabla-operativa td {
+        border-color: #e2e8f0 !important;
       }
       .page-break-inside-avoid {
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
       }
     }
 
@@ -236,71 +234,74 @@
   <!-- ============================================================ -->
   <div id="documentoImpresionOperativa" class="solo-impresion w-full">
     <!-- Encabezado Oficial -->
-    <div class="border-b-2 border-slate-900 pb-2 mb-3">
+    <div class="border-b-2 border-slate-900 pb-2 mb-2.5">
       <div class="flex justify-between items-start">
         <div>
-          <h1 class="text-xl font-black uppercase tracking-tight text-slate-900">MUNICIPIO DE QUILMES</h1>
-          <h2 class="text-xs font-extrabold uppercase text-emerald-800">Secretaría de Ambiente y GIRSU</h2>
-          <p class="text-[10px] font-bold text-slate-600 uppercase mt-0.5">Parte Técnico Operativo de Recolección, Cobertura y Pesaje Balanza ODIN</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-black uppercase tracking-tight text-slate-900 leading-none">MUNICIPIO DE QUILMES</h1>
+            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300">Oficial</span>
+          </div>
+          <h2 class="text-xs font-black uppercase text-emerald-800 mt-1">Secretaría de Ambiente y GIRSU</h2>
+          <p class="text-[10px] font-bold text-slate-600 uppercase">Parte Técnico Operativo • Recolección, Cobertura y Pesajes Balanza ODIN</p>
         </div>
-        <div class="text-right border-l-2 border-slate-300 pl-3">
+        <div class="text-right border-l-2 border-slate-400 pl-3">
           <p class="text-xs font-black text-slate-900 uppercase" id="printDocTituloPeríodo">PARTE SEMANAL</p>
-          <p class="text-[10px] font-semibold text-slate-600" id="printDocFechaEmision">Emisión: --/--/----</p>
-          <p class="text-[10px] font-semibold text-slate-600">Base: Ecoparque Quilmes</p>
+          <p class="text-[10px] font-semibold text-slate-700" id="printDocFechaEmision">Emisión: --/--/----</p>
+          <p class="text-[10px] font-semibold text-slate-700">Base: Complejo Socioambiental Ecoparque</p>
         </div>
       </div>
     </div>
 
     <!-- Metadatos de la Zona -->
-    <div class="bg-slate-50 border border-slate-300 p-2.5 rounded-lg mb-3 grid grid-cols-4 gap-2 text-xs">
+    <div class="bg-slate-50 border border-slate-300 p-2 rounded-lg mb-2.5 grid grid-cols-4 gap-2 text-xs">
       <div>
-        <span class="font-bold text-slate-500 uppercase block text-[10px]">Zona Operativa:</span>
+        <span class="font-bold text-slate-500 uppercase block text-[9.5px]">Zona Operativa:</span>
         <span class="text-sm font-black text-slate-900" id="printDocZona">--</span>
       </div>
       <div>
-        <span class="font-bold text-slate-500 uppercase block text-[10px]">Delimitación / Sector:</span>
+        <span class="font-bold text-slate-500 uppercase block text-[9.5px]">Delimitación / Sector:</span>
         <span class="font-bold text-slate-800 truncate block" id="printDocBarrio">--</span>
       </div>
       <div>
-        <span class="font-bold text-slate-500 uppercase block text-[10px]">Turno y Horario:</span>
+        <span class="font-bold text-slate-500 uppercase block text-[9.5px]">Turno y Horario:</span>
         <span class="font-bold text-slate-800 block" id="printDocTurno">--</span>
       </div>
       <div>
-        <span class="font-bold text-slate-500 uppercase block text-[10px]">Monitoreo de Cobertura:</span>
+        <span class="font-bold text-slate-500 uppercase block text-[9.5px]">Monitoreo de Cobertura:</span>
         <span class="font-black text-slate-900 block" id="printDocCuadrasTotales">Validación ODIN</span>
       </div>
     </div>
 
     <!-- Indicadores de Gestión del Período -->
-    <div class="grid grid-cols-3 gap-2.5 mb-3">
-      <div class="border border-slate-300 p-2 rounded-lg text-center bg-slate-50/50">
-        <span class="text-[10px] font-bold uppercase text-slate-500 block">Total Toneladas Recolectadas</span>
-        <span class="text-xl font-black text-slate-900 block mt-0.5" id="printDocTotalTn">0.0 Tn</span>
-        <span class="text-[9px] text-slate-500 uppercase font-medium">Balanza Tolvas Ecoparque</span>
+    <div class="grid grid-cols-3 gap-2 mb-2.5">
+      <div class="border border-slate-300 p-2 rounded-lg text-center bg-slate-50/70">
+        <span class="text-[9.5px] font-bold uppercase text-slate-500 block">Total Toneladas Recolectadas</span>
+        <span class="text-lg font-black text-slate-900 block mt-0.5" id="printDocTotalTn">0.0 Tn</span>
+        <span class="text-[8.5px] text-slate-500 uppercase font-bold">Balanza Tolvas Ecoparque</span>
       </div>
-      <div class="border border-slate-300 p-2 rounded-lg text-center bg-slate-50/50">
-        <span class="text-[10px] font-bold uppercase text-slate-500 block">Efectividad Territorial</span>
-        <span class="text-xl font-black text-emerald-800 block mt-0.5" id="printDocEfectividad">100%</span>
-        <span class="text-[9px] text-slate-500 uppercase font-medium">Cumplimiento del Circuito</span>
+      <div class="border border-slate-300 p-2 rounded-lg text-center bg-slate-50/70">
+        <span class="text-[9.5px] font-bold uppercase text-slate-500 block">Efectividad Territorial</span>
+        <span class="text-lg font-black text-emerald-800 block mt-0.5" id="printDocEfectividad">100%</span>
+        <span class="text-[8.5px] text-slate-500 uppercase font-bold">Cumplimiento del Circuito</span>
       </div>
-      <div class="border border-slate-300 p-2 rounded-lg text-center bg-slate-50/50">
-        <span class="text-[10px] font-bold uppercase text-slate-500 block">Servicios del Período</span>
-        <span class="text-xl font-black text-emerald-800 block mt-0.5" id="printDocFaltantes">0 Incompletas</span>
-        <span class="text-[9px] text-slate-500 uppercase font-medium" id="printDocManzanas">Auditoría Balanza</span>
+      <div class="border border-slate-300 p-2 rounded-lg text-center bg-slate-50/70">
+        <span class="text-[9.5px] font-bold uppercase text-slate-500 block">Servicios del Período</span>
+        <span class="text-lg font-black text-slate-900 block mt-0.5" id="printDocFaltantes">0 Incompletas</span>
+        <span class="text-[8.5px] text-slate-500 uppercase font-bold" id="printDocManzanas">Auditoría Balanza</span>
       </div>
     </div>
 
     <!-- Tabla Operativa Diaria -->
-    <div class="border border-slate-300 rounded-lg overflow-hidden mb-4">
+    <div class="border border-slate-300 rounded-lg overflow-hidden mb-3">
       <table class="w-full text-left text-xs tabla-operativa border-collapse">
         <thead>
           <tr class="border-b border-slate-300 font-black uppercase text-slate-700 bg-slate-100">
-            <th class="p-1.5 border-r border-slate-300 w-28">Día / Período</th>
-            <th class="p-1.5 border-r border-slate-300 w-24 text-center">Interno Camión</th>
-            <th class="p-1.5 border-r border-slate-300 w-24 text-right">Tn Balanza</th>
-            <th class="p-1.5 border-r border-slate-300 w-28 text-center">Estado Circuito</th>
-            <th class="p-1.5 border-r border-slate-300 w-20 text-center">Cumpl.</th>
-            <th class="p-1.5">Novedades / Causa de Faltante / Observaciones</th>
+            <th class="p-1.5 border-r border-slate-300 w-28 text-slate-900">Día / Período</th>
+            <th class="p-1.5 border-r border-slate-300 w-24 text-center text-slate-900">Interno Camión</th>
+            <th class="p-1.5 border-r border-slate-300 w-24 text-right text-slate-900">Tn Balanza</th>
+            <th class="p-1.5 border-r border-slate-300 w-28 text-center text-slate-900">Estado Circuito</th>
+            <th class="p-1.5 border-r border-slate-300 w-20 text-center text-slate-900">Cumpl.</th>
+            <th class="p-1.5 text-slate-900">Novedades / Causa de Faltante / Observaciones</th>
           </tr>
         </thead>
         <tbody id="printDocCuerpoTabla" class="divide-y divide-slate-200">
@@ -310,20 +311,20 @@
     </div>
 
     <!-- Bloque de Firmas y Responsables Oficiales -->
-    <div class="page-break-inside-avoid border-t-2 border-slate-400 pt-6 mt-6 grid grid-cols-3 gap-6 text-center text-xs">
+    <div class="page-break-inside-avoid border-t-2 border-slate-400 pt-4 mt-4 grid grid-cols-3 gap-6 text-center text-xs">
       <div>
         <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
-        <span class="font-black uppercase text-slate-800 block">Chofer / Dotación</span>
+        <span class="font-black uppercase text-slate-800 block text-[11px]">Chofer / Dotación</span>
         <span class="text-[9px] text-slate-500">Operador Unidad Asignada</span>
       </div>
       <div>
         <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
-        <span class="font-black uppercase text-slate-800 block">Supervisor Operativo</span>
+        <span class="font-black uppercase text-slate-800 block text-[11px]">Supervisor Operativo</span>
         <span class="text-[9px] text-slate-500">Secretaría de Ambiente y GIRSU</span>
       </div>
       <div>
         <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
-        <span class="font-black uppercase text-slate-800 block">Control Balanza Ecoparque</span>
+        <span class="font-black uppercase text-slate-800 block text-[11px]">Control Balanza Ecoparque</span>
         <span class="text-[9px] text-slate-500">Validación Sistema ODIN</span>
       </div>
     </div>
@@ -486,6 +487,10 @@
     </div>
   </section>
 
+  <!-- ============================================================ -->
+  <!-- VISTA 2 EN PANTALLA: FICHA TÉCNICA DE ZONA                   -->
+  <!-- ============================================================ -->
+  <main id="seccionFichaTecnica" class="max-w-7xl mx-auto w-full p-4 md:p-6 flex-1">
     <!-- ENCABEZADO DE ZONA CON IDENTIDAD VERDE & VIOLETA -->
     <div class="bg-white border-l-4 border-l-gestion-violeta border-y border-r border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-4 min-w-0 flex-1">
