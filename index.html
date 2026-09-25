@@ -6,8 +6,8 @@
   <title>Recolección Domiciliaria + Contenerización | Secretaría de Ambiente y GIRSU</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -18,14 +18,27 @@
         extend: {
           fontFamily: {
             sans: ['"Asap Condensed"', 'sans-serif'],
+            mono: ['"Asap Condensed"', 'sans-serif'], // Unifica cualquier número o clase mono a Asap Condensed
+          },
+          colors: {
+            gestion: {
+              verde: '#008450',
+              verdeOscuro: '#005f39',
+              verdeClaro: '#e6f5ee',
+              violeta: '#6b21a8',
+              violetaOscuro: '#4c1d95',
+              violetaClaro: '#f3e8ff',
+              violetaAcento: '#8b5cf6',
+              borde: '#cbd5e1'
+            }
           }
         }
       }
     }
   </script>
 
-  <!-- ESTILOS DE IMPRESIÓN OPERATIVA FORMAL (A4) -->
   <style>
+    /* Estilos de impresión formal A4 */
     @media screen {
       .solo-impresion { display: none !important; }
     }
@@ -33,7 +46,7 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 12mm 12mm 12mm 12mm;
+        margin: 10mm 12mm 10mm 12mm;
       }
       body {
         background: #ffffff !important;
@@ -41,7 +54,7 @@
         font-family: 'Asap Condensed', sans-serif !important;
         font-size: 10pt !important;
       }
-      header, .no-print, nav, button, select, input, #modalEdicion, #modalNuevaZona, #modalPizarraFlota, #modalImportarOdin, #seccionDashboardGeneral, #seccionFichaTecnica {
+      header, .no-print, nav, button, select, input, #modalEdicion, #modalNuevaZona, #modalPizarraFlota, #modalImportarOdin, #seccionDashboardGeneral, #toastNotificacion, #resultadosBusquedaRapida {
         display: none !important;
       }
       .solo-impresion {
@@ -56,75 +69,161 @@
         page-break-inside: avoid;
       }
     }
+
+    /* Scrollbar sutil */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-purple-200 selection:text-purple-900">
 
+  <!-- URL DE CONEXIÓN CON GOOGLE APPS SCRIPT -->
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIo23CkIocuCxw3xlhuiaKC6znKY5oD6v6iOR4kaHod14pi40hpMBiG-_vt8U9jYW8/exec";
   </script>
 
-  <!-- CABECERA INSTITUCIONAL EN PANTALLA -->
-  <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 px-4 py-3 no-print">
-    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 leading-tight">
-          Recolección Domiciliaria + Contenerización
-        </h1>
-        <p class="text-xs md:text-sm font-bold text-emerald-700 uppercase tracking-wide">
-          Secretaría de Ambiente y GIRSU • Municipio de Quilmes
-        </p>
+  <!-- CABECERA INSTITUCIONAL GESTIÓN AMBIENTE Y GIRSU -->
+  <header class="bg-gradient-to-r from-slate-900 via-[#182338] to-[#24133b] border-b-4 border-gestion-verde shadow-md sticky top-0 z-30 px-4 py-3 no-print text-white">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- LOGO Y TÍTULOS DE GESTIÓN -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-violet-700 flex items-center justify-center shadow-inner border border-white/20 shrink-0">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight leading-none text-white">
+              Recolección Domiciliaria + Contenerización
+            </h1>
+            <span class="hidden md:inline-block px-2 py-0.5 rounded text-[10px] font-black bg-violet-600/60 border border-violet-400/40 text-violet-200 uppercase tracking-widest">
+              GIRSU
+            </span>
+          </div>
+          <p class="text-xs md:text-sm font-bold text-emerald-400 uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
+            <span>Secretaría de Ambiente y GIRSU</span>
+            <span class="text-slate-400">•</span>
+            <span class="text-slate-300 font-semibold">Municipio de Quilmes</span>
+          </p>
+        </div>
       </div>
       
-      <!-- CONTROLES SUPERIORES -->
+      <!-- BARRA DE ACCIONES Y CONTROLES OPERATIVOS -->
       <div class="flex flex-wrap items-center gap-2">
-        <a href="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5">
-          <span>⬅️</span>
-          <span>Volver al Mapa</span>
-        </a>
+        
+        <!-- BUSCADOR RÁPIDO DE ZONAS Y BARRIOS -->
+        <div class="relative w-44 md:w-56">
+          <div class="flex items-center bg-slate-800/90 border border-slate-600 focus-within:border-emerald-400 rounded-lg px-2.5 py-1.5 transition">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+              type="text" 
+              id="inputBuscadorZonas" 
+              placeholder="Buscar zona o barrio..." 
+              oninput="buscarZonasEnTiempoReal(this.value)"
+              onfocus="buscarZonasEnTiempoReal(this.value)"
+              autocomplete="off"
+              class="bg-transparent text-xs font-bold text-white placeholder-slate-400 outline-none w-full"
+            >
+            <button onclick="limpiarBuscadorZonas()" id="btnLimpiarBuscador" class="hidden text-slate-400 hover:text-white text-xs px-1 font-bold">✕</button>
+          </div>
 
-        <button onclick="alternarDashboardGeneral()" id="btnToggleDashboard" class="bg-teal-700 hover:bg-teal-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-teal-800">
-          <span>📊</span>
+          <!-- MENÚ DESPLEGABLE DE RESULTADOS DE BÚSQUEDA -->
+          <div id="resultadosBusquedaRapida" class="absolute left-0 right-0 top-full mt-1.5 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 overflow-hidden hidden z-50 max-h-72 overflow-y-auto">
+            <!-- Rellenado dinámico -->
+          </div>
+        </div>
+
+        <!-- SELECTOR DE FECHA CALENDARIO -->
+        <div class="flex items-center gap-1 bg-slate-800/90 border border-slate-600 rounded-lg px-2.5 py-1 text-slate-200">
+          <svg class="w-3.5 h-3.5 text-violet-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <input type="date" id="inputCalendario" onchange="seleccionarFechaCalendario(this.value)" class="bg-transparent font-bold text-xs text-white outline-none cursor-pointer">
+        </div>
+
+        <!-- TOGGLE VISTA DASHBOARD GENERAL -->
+        <button onclick="alternarDashboardGeneral()" id="btnToggleDashboard" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-emerald-500/40">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
           <span id="btnToggleDashboardTexto">Dashboard General</span>
         </button>
 
-        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
-          <span class="text-xs font-black uppercase text-slate-500">📅</span>
-          <input type="date" id="inputCalendario" onchange="seleccionarFechaCalendario(this.value)" class="bg-transparent font-bold text-xs text-slate-800 outline-none cursor-pointer">
-        </div>
-
-        <button onclick="abrirModalImportarOdin()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-purple-800">
-          <span>📂</span>
+        <!-- CARGAR ODIN -->
+        <button onclick="abrirModalImportarOdin()" class="bg-gradient-to-r from-purple-700 to-violet-800 hover:from-purple-800 hover:to-violet-900 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-purple-400/40">
+          <svg class="w-3.5 h-3.5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
           <span>Cargar ODIN</span>
         </button>
 
-        <button onclick="abrirModalPizarraFlota()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-emerald-800">
-          <span>🚛</span>
+        <!-- PIZARRA DE FLOTA -->
+        <button onclick="abrirModalPizarraFlota()" class="bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-800 hover:to-teal-900 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-emerald-400/40">
+          <svg class="w-3.5 h-3.5 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25V3.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v10.5c0 .621.504 1.125 1.125 1.125h1.125" />
+          </svg>
           <span>Pizarra</span>
         </button>
 
-        <div id="contenedorSelectorZona" class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1">
-          <span class="text-xs font-bold uppercase text-slate-500">Zona:</span>
-          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-bold text-base text-slate-800 outline-none cursor-pointer max-w-[150px] truncate"></select>
+        <!-- SELECTOR DE ZONA TRADICIONAL -->
+        <div id="contenedorSelectorZona" class="flex items-center gap-1.5 bg-slate-800/90 border border-slate-600 rounded-lg px-2.5 py-1">
+          <span class="text-xs font-bold uppercase text-slate-400">Zona:</span>
+          <select id="selectorZona" onchange="cambiarZona(this.value)" class="bg-transparent font-black text-sm text-emerald-300 outline-none cursor-pointer max-w-[130px] truncate"></select>
         </div>
 
-        <button onclick="abrirModalNuevaZona()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          ➕ <span>Zona</span>
+        <!-- AGREGAR NUEVA ZONA -->
+        <button onclick="abrirModalNuevaZona()" title="Agregar nueva zona" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold uppercase px-2.5 py-2 rounded-lg transition border border-slate-600 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span class="hidden lg:inline">Zona</span>
         </button>
 
-        <button onclick="abrirModalEdicion()" id="btnEditarZonaNav" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          ✏️ <span>Editar</span>
+        <!-- EDITAR ZONA -->
+        <button onclick="abrirModalEdicion()" id="btnEditarZonaNav" class="bg-amber-600/90 hover:bg-amber-600 text-white text-xs font-bold uppercase px-2.5 py-2 rounded-lg transition border border-amber-500/40 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+          <span class="hidden lg:inline">Editar</span>
         </button>
 
-        <!-- BOTÓN IMPRIMIR PARTE OPERATIVO -->
-        <button onclick="imprimirParteOperativo()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-slate-900">
-          <span>🖨️</span>
-          <span>Parte Operativo</span>
+        <!-- IMPRIMIR PARTE OPERATIVO FORMAL -->
+        <button onclick="imprimirParteOperativo()" class="bg-slate-900 hover:bg-black text-white text-xs font-black uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5 border border-slate-700">
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.75A2.25 2.25 0 0015.75 1.5h-7.5A2.25 2.25 0 006 3.75v3.456" />
+          </svg>
+          <span>Parte A4</span>
         </button>
 
-        <button onclick="sincronizarConNube(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase px-3 py-2 rounded-lg transition shadow flex items-center gap-1">
-          🔄 <span id="syncText">En Línea</span>
+        <!-- ESTADO EN LÍNEA -->
+        <button onclick="sincronizarConNube(true)" class="bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-bold uppercase px-2.5 py-2 rounded-lg transition border border-emerald-400/40 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+          <span id="syncText">En Línea</span>
         </button>
+
+        <!-- VOLVER AL MAPA -->
+        <a href="https://ecoparquequilmes.my.canva.site/mapas-interactivos-ambiente-y-girsu/page-2" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase px-2.5 py-2 rounded-lg transition shadow flex items-center gap-1 border border-indigo-400/40">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          <span class="hidden sm:inline">Mapa</span>
+        </a>
       </div>
     </div>
   </header>
@@ -137,14 +236,14 @@
     <div class="border-b-2 border-slate-900 pb-3 mb-4">
       <div class="flex justify-between items-start">
         <div>
-          <h1 class="text-xl font-black uppercase tracking-tight text-slate-900">MUNICIPÍO DE QUILMES</h1>
-          <h2 class="text-sm font-extrabold uppercase text-emerald-800">Secretaría de Ambiente y GIRSU • Dirección de Higiene Urbana</h2>
+          <h1 class="text-xl font-black uppercase tracking-tight text-slate-900">MUNICIPIO DE QUILMES</h1>
+          <h2 class="text-sm font-extrabold uppercase text-emerald-800">Secretaría de Ambiente y GIRSU</h2>
           <p class="text-xs font-bold text-slate-600 uppercase mt-0.5">Parte Técnico Operativo de Recolección, Cobertura y Pesaje Balanza ODIN</p>
         </div>
         <div class="text-right border-l-2 border-slate-300 pl-3">
           <p class="text-xs font-black text-slate-900 uppercase" id="printDocTituloPeríodo">PARTE SEMANAL</p>
           <p class="text-xs font-medium text-slate-600" id="printDocFechaEmision">Emisión: --/--/----</p>
-          <p class="text-xs font-medium text-slate-600">Base: Complejo Socioambiental Ecoparque</p>
+          <p class="text-xs font-medium text-slate-600">Base: Complejo Socioambiental Ecoparque Quilmes</p>
         </div>
       </div>
     </div>
@@ -174,11 +273,11 @@
       <div class="border border-slate-300 p-2.5 rounded-lg text-center">
         <span class="text-xs font-bold uppercase text-slate-500 block">Total Toneladas Recolectadas</span>
         <span class="text-2xl font-black text-slate-900 block mt-0.5" id="printDocTotalTn">0.0 Tn</span>
-        <span class="text-[10px] text-slate-500 uppercase font-medium">Balanza Electrónica Ecoparque</span>
+        <span class="text-[10px] text-slate-500 uppercase font-medium">Balanza ODIN Tolva Ecoparque</span>
       </div>
       <div class="border border-slate-300 p-2.5 rounded-lg text-center">
         <span class="text-xs font-bold uppercase text-slate-500 block">Efectividad Territorial</span>
-        <span class="text-2xl font-black text-emerald-700 block mt-0.5" id="printDocEfectividad">100%</span>
+        <span class="text-2xl font-black text-emerald-800 block mt-0.5" id="printDocEfectividad">100%</span>
         <span class="text-[10px] text-slate-500 uppercase font-medium">Porcentaje de Cobertura</span>
       </div>
       <div class="border border-slate-300 p-2.5 rounded-lg text-center">
@@ -192,33 +291,33 @@
     <div class="border border-slate-300 rounded-lg overflow-hidden mb-5">
       <table class="w-full text-left text-xs tabla-operativa border-collapse">
         <thead>
-          <tr class="border-b border-slate-300 font-black uppercase text-slate-700">
+          <tr class="border-b border-slate-300 font-black uppercase text-slate-700 bg-slate-50">
             <th class="p-2 border-r border-slate-300 w-24">Día / Período</th>
             <th class="p-2 border-r border-slate-300 w-28 text-center">Camión / Interno</th>
             <th class="p-2 border-r border-slate-300 w-24 text-right">Tn Balanza</th>
-            <th class="p-2 border-r border-slate-300 w-24 text-center">Cdras Prog.</th>
-            <th class="p-2 border-r border-slate-300 w-24 text-center">Faltante</th>
+            <th class="p-2 border-r border-slate-300 w-20 text-center">Cdras Prog.</th>
+            <th class="p-2 border-r border-slate-300 w-20 text-center">Faltante</th>
             <th class="p-2 border-r border-slate-300 w-20 text-center">% Cumpl.</th>
             <th class="p-2">Novedades / Causa de Faltante / Observaciones</th>
           </tr>
         </thead>
         <tbody id="printDocCuerpoTabla" class="divide-y divide-slate-200">
-          <!-- Se completa dinámicamente -->
+          <!-- Rellenado dinámicamente -->
         </tbody>
       </table>
     </div>
 
-    <!-- Bloque de Firmas y Responsables -->
+    <!-- Bloque de Firmas y Responsables Oficiales -->
     <div class="page-break-inside-avoid border-t-2 border-slate-400 pt-8 mt-8 grid grid-cols-3 gap-6 text-center text-xs">
       <div>
         <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
         <span class="font-black uppercase text-slate-800 block">Chofer / Dotación</span>
-        <span class="text-[10px] text-slate-500">Operador de Unidad</span>
+        <span class="text-[10px] text-slate-500">Operador de Unidad Asignada</span>
       </div>
       <div>
         <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
         <span class="font-black uppercase text-slate-800 block">Supervisor Operativo</span>
-        <span class="text-[10px] text-slate-500">Control Territorial / Turno</span>
+        <span class="text-[10px] text-slate-500">Secretaría de Ambiente y GIRSU</span>
       </div>
       <div>
         <div class="border-b border-slate-400 pb-1 mb-1 mx-4"></div>
@@ -229,34 +328,43 @@
   </div>
 
   <!-- ============================================================ -->
-  <!-- VISTA 1 EN PANTALLA: DASHBOARD GENERAL                       -->
+  <!-- VISTA 1 EN PANTALLA: DASHBOARD GENERAL QUILMES               -->
   <!-- ============================================================ -->
-  <section id="seccionDashboardGeneral" class="hidden max-w-6xl mx-auto w-full p-4 flex-1">
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <section id="seccionDashboardGeneral" class="hidden max-w-7xl mx-auto w-full p-4 md:p-6 flex-1">
+    
+    <!-- ENCABEZADO DASHBOARD CON COLORES DE GESTIÓN -->
+    <div class="bg-white border-l-4 border-l-gestion-verde border-y border-r border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
-          <span class="text-2xl">📊</span>
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-black">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            </svg>
+          </div>
           <h2 class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-tight">Dashboard General Quilmes</h2>
-          <span class="text-xs font-extrabold uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-            Vista Ejecutiva Distrital
+          <span class="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-800 border border-violet-200">
+            Ambiente y GIRSU
           </span>
         </div>
-        <p class="text-sm font-semibold text-slate-500 mt-1" id="subtituloDashboardPeriodo">Consolidado general de pesajes y efectividad operativa</p>
+        <p class="text-sm font-bold text-slate-500 mt-1" id="subtituloDashboardPeriodo">
+          Consolidado general de pesajes ODIN y cobertura territorial
+        </p>
       </div>
 
+      <!-- SELECTOR DE SEMANAS Y TOTAL -->
       <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center">
         <button onclick="cambiarVistaDashboard('semana1')" id="dash-btn-sem1" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition bg-white text-slate-900 shadow-sm">Semana 1</button>
         <button onclick="cambiarVistaDashboard('semana2')" id="dash-btn-sem2" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 2</button>
         <button onclick="cambiarVistaDashboard('semana3')" id="dash-btn-sem3" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 3</button>
         <button onclick="cambiarVistaDashboard('semana4')" id="dash-btn-sem4" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 4</button>
-        <button onclick="cambiarVistaDashboard('total')" id="dash-btn-total" class="dash-tab-btn px-3 py-1.5 rounded-lg text-xs font-black uppercase transition text-slate-600 hover:text-slate-900">Total Mes</button>
+        <button onclick="cambiarVistaDashboard('total')" id="dash-btn-total" class="dash-tab-btn px-3.5 py-1.5 rounded-lg text-xs font-black uppercase transition bg-violet-700 text-white shadow-sm">Total Mes</button>
       </div>
     </div>
 
     <!-- TARJETAS CONSOLIDADAS DEL MUNICIPIO -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Residuos Ingresados</span>
+      <div class="bg-white border-t-4 border-t-emerald-600 border-x border-b border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-black uppercase tracking-wider text-emerald-800">Total Residuos Ingresados</span>
         <div class="flex items-baseline gap-2 mt-1">
           <span id="dashKpiTotalTn" class="text-3xl md:text-4xl font-black text-slate-900">0.0</span>
           <span class="text-sm font-bold text-slate-500 uppercase">Tn</span>
@@ -264,29 +372,29 @@
         <p class="text-xs font-medium text-slate-400 mt-2">Balanza Ecoparque en tolvas</p>
       </div>
 
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Efectividad Global</span>
+      <div class="bg-white border-t-4 border-t-violet-600 border-x border-b border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-black uppercase tracking-wider text-violet-800">Efectividad Global</span>
         <div class="flex items-baseline gap-2 mt-1">
-          <span id="dashKpiEfectividad" class="text-3xl md:text-4xl font-black text-emerald-600">100%</span>
+          <span id="dashKpiEfectividad" class="text-3xl md:text-4xl font-black text-violet-700">100%</span>
         </div>
         <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
-          <div id="dashBarraEfectividad" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 100%"></div>
+          <div id="dashBarraEfectividad" class="bg-gradient-to-r from-emerald-500 to-violet-600 h-2 rounded-full transition-all duration-500" style="width: 100%"></div>
         </div>
       </div>
 
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Cuadras Faltantes</span>
+      <div class="bg-white border-t-4 border-t-amber-500 border-x border-b border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-black uppercase tracking-wider text-amber-700">Cuadras Faltantes</span>
         <div class="flex items-baseline gap-2 mt-1">
           <span id="dashKpiFaltantes" class="text-3xl md:text-4xl font-black text-amber-600">0</span>
-          <span id="dashKpiTotalCuadras" class="text-xs font-bold text-slate-400 uppercase">/ 0 cdras</span>
+          <span id="dashKpiTotalCuadras" class="text-xs font-black text-slate-400 uppercase">/ 0 cdras</span>
         </div>
         <p id="dashKpiManzanas" class="text-xs font-bold text-amber-700 mt-2">~0 manzanas pendientes</p>
       </div>
 
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Zonas Operativas</span>
+      <div class="bg-white border-t-4 border-t-indigo-600 border-x border-b border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-black uppercase tracking-wider text-indigo-700">Zonas Operativas</span>
         <div class="flex items-baseline gap-2 mt-1">
-          <span id="dashKpiCantZonas" class="text-3xl md:text-4xl font-black text-indigo-600">0</span>
+          <span id="dashKpiCantZonas" class="text-3xl md:text-4xl font-black text-slate-900">0</span>
           <span class="text-sm font-bold text-slate-500 uppercase">Zonas</span>
         </div>
         <p class="text-xs font-medium text-slate-400 mt-2">Rutas activas en el distrito</p>
@@ -296,12 +404,15 @@
     <!-- COMPARATIVA POR TURNOS OPERATIVOS -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
       <h3 class="text-base font-black uppercase text-slate-900 tracking-tight mb-4 flex items-center gap-2">
-        <span>⏱️</span> Rendimiento Operativo por Turnos de Recolección
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+        <span>Rendimiento Operativo por Turnos de Recolección</span>
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="border border-rose-200 bg-rose-50/50 p-4 rounded-xl">
+        
+        <!-- Turno Mañana -->
+        <div class="border border-rose-200 bg-rose-50/40 p-4 rounded-xl">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-extrabold uppercase text-[#C93B3B] bg-rose-100 px-2.5 py-0.5 rounded-full">
+            <span class="text-xs font-black uppercase text-[#C93B3B] bg-rose-100 px-2.5 py-0.5 rounded-full">
               Turno Mañana (05 a 08 hs)
             </span>
             <span id="dashPorcManana" class="text-xs font-black text-rose-700">0%</span>
@@ -310,50 +421,53 @@
             <span id="dashTnManana" class="text-3xl font-black text-slate-900">0.0</span>
             <span class="text-xs font-bold text-slate-500 uppercase">Tn</span>
           </div>
-          <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasManana">0 zonas asignadas</p>
+          <p class="text-xs text-slate-500 font-bold mt-1" id="dashZonasManana">0 zonas asignadas</p>
         </div>
 
-        <div class="border border-emerald-200 bg-emerald-50/50 p-4 rounded-xl">
+        <!-- Turno Tarde -->
+        <div class="border border-emerald-200 bg-emerald-50/40 p-4 rounded-xl">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-extrabold uppercase text-[#0F9D58] bg-emerald-100 px-2.5 py-0.5 rounded-full">
+            <span class="text-xs font-black uppercase text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
               Turno Tarde (12 a 15 hs)
             </span>
-            <span id="dashPorcTarde" class="text-xs font-black text-emerald-700">0%</span>
+            <span id="dashPorcTarde" class="text-xs font-black text-emerald-800">0%</span>
           </div>
           <div class="flex items-baseline gap-1 mt-2">
             <span id="dashTnTarde" class="text-3xl font-black text-slate-900">0.0</span>
             <span class="text-xs font-bold text-slate-500 uppercase">Tn</span>
           </div>
-          <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasTarde">0 zonas asignadas</p>
+          <p class="text-xs text-slate-500 font-bold mt-1" id="dashZonasTarde">0 zonas asignadas</p>
         </div>
 
-        <div class="border border-sky-200 bg-sky-50/50 p-4 rounded-xl">
+        <!-- Turno Noche -->
+        <div class="border border-purple-200 bg-purple-50/40 p-4 rounded-xl">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-extrabold uppercase text-[#0088A8] bg-sky-100 px-2.5 py-0.5 rounded-full">
+            <span class="text-xs font-black uppercase text-purple-900 bg-purple-100 px-2.5 py-0.5 rounded-full">
               Turno Noche (19 a 22 hs)
             </span>
-            <span id="dashPorcNoche" class="text-xs font-black text-sky-700">0%</span>
+            <span id="dashPorcNoche" class="text-xs font-black text-purple-900">0%</span>
           </div>
           <div class="flex items-baseline gap-1 mt-2">
             <span id="dashTnNoche" class="text-3xl font-black text-slate-900">0.0</span>
             <span class="text-xs font-bold text-slate-500 uppercase">Tn</span>
           </div>
-          <p class="text-xs text-slate-500 font-medium mt-1" id="dashZonasNoche">0 zonas asignadas</p>
+          <p class="text-xs text-slate-500 font-bold mt-1" id="dashZonasNoche">0 zonas asignadas</p>
         </div>
       </div>
     </div>
 
-    <!-- TABLA COMPARATIVA TERRITORIAL POR ZONAS -->
+    <!-- TABLA TERRITORIAL POR ZONAS -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 class="text-base font-black uppercase text-slate-900 tracking-tight flex items-center gap-2">
-          <span>📋</span> Estado Operativo y Desempeño Territorial por Zona
+          <span class="w-2.5 h-2.5 rounded-full bg-violet-600"></span>
+          <span>Desempeño y Asignación Territorial por Zona</span>
         </h3>
-        <span class="text-xs font-bold text-slate-400 uppercase">Clic en cualquier fila para ir a su ficha</span>
+        <span class="text-xs font-bold text-slate-400 uppercase">Clic en cualquier fila para abrir la ficha</span>
       </div>
       <div class="overflow-x-auto border border-slate-200 rounded-xl">
         <table class="w-full text-left text-sm">
-          <thead class="bg-slate-100 text-xs font-black uppercase text-slate-600 border-b">
+          <thead class="bg-slate-50 text-xs font-black uppercase text-slate-600 border-b">
             <tr>
               <th class="py-2.5 px-3">Zona</th>
               <th class="py-2.5 px-3">Sector / Barrio</th>
@@ -361,48 +475,53 @@
               <th class="py-2.5 px-3 text-right">Tn Pesadas</th>
               <th class="py-2.5 px-3 text-center">Faltante Cdras</th>
               <th class="py-2.5 px-3 text-center">Cumplimiento</th>
-              <th class="py-2.5 px-3">Novedades Destacadas</th>
+              <th class="py-2.5 px-3">Camión / Novedad Registrada</th>
             </tr>
           </thead>
-          <tbody id="cuerpoTablaDashboard" class="divide-y divide-slate-100 cursor-pointer"></tbody>
+          <tbody id="cuerpoTablaDashboard" class="divide-y divide-slate-100 cursor-pointer">
+            <!-- Rellenado dinámico -->
+          </tbody>
         </table>
       </div>
     </div>
   </section>
 
   <!-- ============================================================ -->
-  <!-- VISTA 2 EN PANTALLA: FICHA DE ZONA                           -->
+  <!-- VISTA 2 EN PANTALLA: FICHA TÉCNICA DE ZONA                   -->
   <!-- ============================================================ -->
-  <main id="seccionFichaTecnica" class="max-w-6xl mx-auto w-full p-4 flex-1">
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <main id="seccionFichaTecnica" class="max-w-7xl mx-auto w-full p-4 md:p-6 flex-1">
+    
+    <!-- ENCABEZADO DE ZONA CON IDENTIDAD VERDE & VIOLETA -->
+    <div class="bg-white border-l-4 border-l-gestion-violeta border-y border-r border-slate-200 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-4 min-w-0 flex-1">
-        <div id="badgeZona" class="h-16 min-w-[4rem] max-w-[9rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap">
+        <div id="badgeZona" class="h-16 min-w-[4.5rem] max-w-[10rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow-md transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap bg-gradient-to-br from-emerald-600 to-teal-800 text-3xl">
           --
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-2">
             <h2 id="tituloZona" class="text-2xl md:text-3xl font-black uppercase text-slate-900 leading-tight truncate">Cargando Zona...</h2>
-            <span id="badgeTurno" class="text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
+            <span id="badgeTurno" class="text-xs font-black uppercase px-3 py-1 rounded-full shadow-sm whitespace-nowrap bg-emerald-50 text-emerald-800 border border-emerald-200">
               Turno --
             </span>
           </div>
-          <p id="subtituloZona" class="text-sm font-semibold text-slate-500 mt-1 truncate">Municipio de Quilmes</p>
+          <p id="subtituloZona" class="text-sm font-bold text-slate-500 mt-1 truncate">Secretaría de Ambiente y GIRSU • Municipio de Quilmes</p>
         </div>
       </div>
 
+      <!-- BOTONES DE NAVEGACIÓN SEMANAL -->
       <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0 self-start md:self-center">
         <button onclick="seleccionarVista('semana1')" id="btn-sem1" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition bg-white text-slate-900 shadow-sm">Semana 1</button>
         <button onclick="seleccionarVista('semana2')" id="btn-sem2" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 2</button>
         <button onclick="seleccionarVista('semana3')" id="btn-sem3" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 3</button>
         <button onclick="seleccionarVista('semana4')" id="btn-sem4" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition text-slate-600 hover:text-slate-900">Semana 4</button>
-        <button onclick="seleccionarVista('total')" id="btn-total" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-black uppercase transition text-slate-600 hover:text-slate-900">Total del Mes</button>
+        <button onclick="seleccionarVista('total')" id="btn-total" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-black uppercase transition text-slate-600 hover:text-slate-900">Total Mes</button>
       </div>
     </div>
 
     <!-- TARJETAS PRINCIPALES EN PANTALLA -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Toneladas Pesadas (Ecoparque)</span>
+      <div class="bg-white border-t-4 border-t-emerald-600 border-x border-b border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-black uppercase tracking-wider text-emerald-800">Toneladas Pesadas (ODIN Balanza)</span>
         <div class="flex items-baseline gap-2 mt-1">
           <span id="kpiToneladas" class="text-4xl md:text-5xl font-black text-slate-900">0.0</span>
           <span class="text-sm font-bold text-slate-500 uppercase">Tn</span>
@@ -410,134 +529,177 @@
         <p class="text-xs font-medium text-slate-400 mt-2" id="kpiSubtituloPeriodo">Pesaje verificado por balanza ODIN</p>
       </div>
 
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+      <div class="bg-white border-t-4 border-t-amber-500 border-x border-b border-slate-200 p-5 rounded-2xl shadow-sm">
         <div class="flex justify-between items-start">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Faltante de Cuadras</span>
-          <span id="badgeManzanas" class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase">~0 manzanas</span>
+          <span class="text-xs font-black uppercase tracking-wider text-amber-700">Faltante de Cuadras</span>
+          <span id="badgeManzanas" class="text-xs font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase">~0 manzanas</span>
         </div>
         <div class="flex items-baseline gap-2 mt-1">
           <span id="kpiCuadras" class="text-4xl md:text-5xl font-black text-amber-600">0</span>
-          <span id="kpiCuadrasTotal" class="text-sm font-bold text-slate-500 uppercase">/ 0 cuadras</span>
+          <span id="kpiCuadrasTotal" class="text-sm font-black text-slate-500 uppercase">/ 0 cuadras</span>
         </div>
-        <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3 overflow-hidden">
-          <div id="barraProgreso" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 100%"></div>
+        <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+          <div id="barraProgreso" class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full transition-all duration-500" style="width: 100%"></div>
         </div>
       </div>
 
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Efectividad / Cumplimiento</span>
+      <div class="bg-white border-t-4 border-t-violet-600 border-x border-b border-slate-200 p-5 rounded-2xl shadow-sm">
+        <span class="text-xs font-black uppercase tracking-wider text-violet-800">Efectividad / Cumplimiento</span>
         <div class="flex items-baseline gap-2 mt-1">
-          <span id="kpiCumplimiento" class="text-4xl md:text-5xl font-black text-emerald-600">100%</span>
+          <span id="kpiCumplimiento" class="text-4xl md:text-5xl font-black text-violet-700">100%</span>
         </div>
-        <p class="text-xs font-medium text-slate-400 mt-2">Cobertura territorial alcanzada</p>
+        <p class="text-xs font-medium text-slate-400 mt-2">Cobertura territorial alcanzada en el período</p>
       </div>
     </div>
 
-    <!-- DESGLOSE DIARIO CALENDARIO -->
+    <!-- DESGLOSE DIARIO CALENDARIO (CON VISIBILIDAD DE CAMIÓN / INTERNO) -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <h3 id="tituloDesglose" class="text-base font-black uppercase text-slate-900 tracking-tight">Desglose Diario</h3>
-        <span id="rangoFechasDesglose" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"></span>
+        <h3 id="tituloDesglose" class="text-base font-black uppercase text-slate-900 tracking-tight flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+          <span>Desglose Diario y Asignación de Camiones</span>
+        </h3>
+        <span id="rangoFechasDesglose" class="text-xs font-black text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"></span>
       </div>
-      <div id="contenedorDias" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"></div>
+      <div id="contenedorDias" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <!-- Rellenado dinámicamente con pastillas de camión y pesaje -->
+      </div>
     </div>
 
-    <!-- NOVEDADES -->
+    <!-- NOVEDADES Y OBSERVACIONES -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-      <h3 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Novedades territoriales / Cuadras pendientes / Relevos de Camiones</h3>
-      <div id="cajaNovedades" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-semibold text-slate-700 min-h-[60px] flex items-center">
+      <h3 class="text-xs font-black uppercase text-violet-800 tracking-wider mb-2 flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <span>Novedades territoriales / Cuadras pendientes / Relevos de Camiones</span>
+      </h3>
+      <div id="cajaNovedades" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-700 min-h-[60px] flex items-center">
         Sin novedades registradas.
       </div>
     </div>
   </main>
 
-  <!-- MODAL: IMPORTAR REPORTE AUTOMÁTICO DE ODIN -->
+  <!-- ============================================================ -->
+  <!-- MODAL: IMPORTACIÓN 100% AUTOMÁTICA DE ODIN                   -->
+  <!-- ============================================================ -->
   <div id="modalImportarOdin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 max-h-[92vh] flex flex-col">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[92vh] flex flex-col border-t-4 border-t-violet-700">
+      
       <div class="flex items-center justify-between border-b pb-3 mb-4">
         <div>
-          <h3 class="text-xl font-black uppercase text-purple-900 flex items-center gap-2">
-            <span>📂 Importar Reporte de Balanza ODIN</span>
+          <h3 class="text-xl font-black uppercase text-violet-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-violet-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            <span>Importación Automática Balanza ODIN</span>
           </h3>
-          <p class="text-xs font-bold text-slate-500 uppercase">
-            Subí el archivo Excel o CSV de ODIN. El sistema detecta la fecha del ticket automáticamente
+          <p class="text-xs font-bold text-slate-500 uppercase mt-0.5">
+            El sistema detecta automáticamente la fecha, convierte kilos a toneladas y cruza con la Pizarra de Flota
           </p>
         </div>
-        <button onclick="cerrarModalImportarOdin()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+        <button onclick="cerrarModalImportarOdin()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-200 mb-4">
+      <!-- BARRA DE FECHA Y CRUCE AUTOMÁTICO -->
+      <div class="flex flex-wrap items-center gap-3 bg-violet-50/70 p-3 rounded-xl border border-violet-200 mb-4">
         <div class="flex items-center gap-2">
-          <label class="text-xs font-bold uppercase text-purple-900">Fecha del Reporte:</label>
-          <input type="date" id="odinFechaInput" class="border border-purple-300 rounded-lg px-2.5 py-1 text-sm font-bold bg-white text-purple-900">
+          <label class="text-xs font-bold uppercase text-violet-900">Fecha del Ticket:</label>
+          <input type="date" id="odinFechaInput" onchange="reprocesarCruceOdinConFecha(this.value)" class="border border-violet-300 rounded-lg px-2.5 py-1 text-sm font-bold bg-white text-violet-900">
         </div>
-        <span class="text-xs text-purple-700 font-bold ml-auto">
-          Convierte kilos automáticamente a toneladas
-        </span>
+        <div class="ml-auto flex items-center gap-2">
+          <span class="text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            Cruce 100% Automático con Pizarra
+          </span>
+        </div>
       </div>
 
-      <div class="border-2 border-dashed border-slate-300 hover:border-purple-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-50" onclick="document.getElementById('inputArchivoOdin').click()">
+      <!-- DROPZONE ARCHIVO -->
+      <div class="border-2 border-dashed border-violet-300 hover:border-violet-600 bg-violet-50/30 hover:bg-violet-50/60 rounded-xl p-6 text-center cursor-pointer transition" onclick="document.getElementById('inputArchivoOdin').click()">
         <input type="file" id="inputArchivoOdin" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarArchivoOdin(event)">
-        <div class="text-3xl mb-2">📊</div>
-        <p class="text-sm font-black text-slate-800 uppercase">Hacé clic acá para seleccionar el archivo exportado de ODIN</p>
-        <p class="text-xs text-slate-500 mt-1">Soporta formatos Excel (.xlsx, .xls) o CSV (.csv)</p>
+        <div class="w-12 h-12 mx-auto rounded-full bg-violet-100 text-violet-700 flex items-center justify-center mb-2">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+        </div>
+        <p class="text-sm font-black text-slate-800 uppercase">Hacé clic para seleccionar el Excel o CSV exportado de ODIN</p>
+        <p class="text-xs text-slate-500 mt-1 font-semibold">El sistema asigna la zona al instante según el interno del camión</p>
       </div>
 
+      <!-- VISTA PREVIA Y TABLA DE ASIGNACIONES -->
       <div class="mt-4 flex-1 overflow-y-auto border border-slate-200 rounded-xl hidden" id="contenedorVistaPreviaOdin">
+        <div class="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center text-xs font-bold text-slate-600">
+          <span id="resumenTicketsOdin" class="font-bold">Detectados: 0 pesajes</span>
+          <span class="text-violet-700 font-bold">Verificá las zonas preasignadas antes de aplicar</span>
+        </div>
         <table class="w-full text-left text-sm">
           <thead class="bg-slate-100 text-xs font-black uppercase text-slate-600 sticky top-0 border-b">
             <tr>
-              <th class="py-2.5 px-3">Fecha Detectada</th>
+              <th class="py-2.5 px-3">Fecha</th>
               <th class="py-2.5 px-3">Interno / Camión</th>
-              <th class="py-2.5 px-3">Peso Neto ODIN</th>
-              <th class="py-2.5 px-3">Zona Asignada</th>
-              <th class="py-2.5 px-3">Estado</th>
+              <th class="py-2.5 px-3 text-right">Peso ODIN</th>
+              <th class="py-2.5 px-3">Zona Detectada / Asignada</th>
+              <th class="py-2.5 px-3">Origen del Cruce</th>
             </tr>
           </thead>
-          <tbody id="cuerpoTablaOdin" class="divide-y divide-slate-100"></tbody>
+          <tbody id="cuerpoTablaOdin" class="divide-y divide-slate-100 text-xs font-bold">
+            <!-- Rellenado dinámico -->
+          </tbody>
         </table>
       </div>
 
+      <!-- BOTONES DE ACCIÓN -->
       <div class="border-t pt-4 mt-4 flex items-center justify-between">
         <button onclick="cerrarModalImportarOdin()" class="px-4 py-2 rounded-lg text-xs font-bold uppercase text-slate-600 hover:bg-slate-100">
           Cancelar
         </button>
-        <button onclick="aplicarDatosOdinEnZonas()" id="btnAplicarOdin" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-purple-700 hover:bg-purple-800 text-white shadow-md flex items-center gap-2" disabled>
-          <span>Aplicar Pesajes a las Zonas</span>
+        <button onclick="aplicarDatosOdinEnZonas()" id="btnAplicarOdin" class="px-5 py-2.5 rounded-lg text-xs font-black uppercase bg-gradient-to-r from-violet-700 to-purple-800 hover:from-violet-800 hover:to-purple-900 text-white shadow-md flex items-center gap-2 disabled:opacity-50" disabled>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+          <span id="btnAplicarOdinTexto">Aplicar Todos los Pesajes a las Zonas</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: PIZARRA DIARIA DE FLOTA -->
+  <!-- ============================================================ -->
+  <!-- MODAL: PIZARRA DIARIA DE FLOTA (CRUCE CAMIÓN ↔ ZONA)         -->
+  <!-- ============================================================ -->
   <div id="modalPizarraFlota" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[92vh] flex flex-col">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full p-6 max-h-[92vh] flex flex-col border-t-4 border-t-emerald-600">
+      
       <div class="flex items-center justify-between border-b pb-3 mb-4">
         <div>
           <h3 class="text-xl font-black uppercase text-slate-900 flex items-center gap-2">
-            <span>🚛 Pizarra de Flota Diaria</span>
+            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25V3.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v10.5c0 .621.504 1.125 1.125 1.125h1.125" />
+            </svg>
+            <span>Pizarra de Flota Diaria • Asignación de Camiones</span>
           </h3>
-          <p class="text-xs font-bold text-slate-500 uppercase">
-            Asigná qué camión cubrió cada zona para cruzar con los pesajes
+          <p class="text-xs font-bold text-slate-500 uppercase mt-0.5">
+            Cargá el número de Interno en cada zona. ODIN leerá esta pizarra automáticamente para imputar las toneladas
           </p>
         </div>
-        <button onclick="cerrarModalPizarraFlota()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+        <button onclick="cerrarModalPizarraFlota()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">&times;</button>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4">
+      <div class="flex flex-wrap items-center gap-3 bg-emerald-50/60 p-3 rounded-xl border border-emerald-200 mb-4">
         <div class="flex items-center gap-2">
-          <label class="text-xs font-bold uppercase text-slate-600">Fecha:</label>
-          <input type="date" id="pizarraFechaInput" onchange="cambiarFechaPizarra(this.value)" class="border border-slate-300 rounded-lg px-2.5 py-1 text-sm font-bold bg-white">
+          <label class="text-xs font-bold uppercase text-emerald-900">Fecha de Operación:</label>
+          <input type="date" id="pizarraFechaInput" onchange="cambiarFechaPizarra(this.value)" class="border border-emerald-300 rounded-lg px-2.5 py-1 text-sm font-bold bg-white text-emerald-900">
         </div>
-        <span id="pizarraSemanaTexto" class="text-xs font-bold uppercase text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-md"></span>
-        <span class="text-xs text-emerald-700 font-bold ml-auto bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
-          💡 Vincula cada interno con su zona
+        <span id="pizarraSemanaTexto" class="text-xs font-black uppercase text-emerald-900 bg-white border border-emerald-200 px-2.5 py-1 rounded-md"></span>
+        <span class="text-xs text-emerald-800 font-bold ml-auto flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          Cruza directo con tickets de ODIN por interno
         </span>
       </div>
 
       <div class="overflow-y-auto flex-1 pr-1 border border-slate-200 rounded-xl">
         <table class="w-full text-left text-sm">
-          <thead class="bg-slate-100 text-xs font-black uppercase text-slate-600 sticky top-0 border-b">
+          <thead class="bg-slate-50 text-xs font-black uppercase text-slate-600 sticky top-0 border-b">
             <tr>
               <th class="py-2.5 px-3">Zona</th>
               <th class="py-2.5 px-3">Turno / Sector</th>
@@ -547,7 +709,9 @@
               <th class="py-2.5 px-3">Novedad / Observación</th>
             </tr>
           </thead>
-          <tbody id="cuerpoPizarraFlota" class="divide-y divide-slate-100"></tbody>
+          <tbody id="cuerpoPizarraFlota" class="divide-y divide-slate-100">
+            <!-- Rellenado dinámico -->
+          </tbody>
         </table>
       </div>
 
@@ -564,7 +728,7 @@
 
   <!-- MODAL: AGREGAR NUEVA ZONA -->
   <div id="modalNuevaZona" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-4 border-t-emerald-600">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
         <h3 class="text-lg font-black uppercase text-slate-900">Agregar Nueva Zona</h3>
         <button onclick="cerrarModalNuevaZona()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
@@ -572,13 +736,13 @@
 
       <div class="space-y-3">
         <div>
-          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Número o Nombre de Zona</label>
-          <input type="text" id="nuevaZonaNum" placeholder="Ej: 31, 52, o La Florida" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Número o Código de Zona</label>
+          <input type="text" id="nuevaZonaNum" placeholder="Ej: 31, 52, o La Florida" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-black">
         </div>
 
         <div>
           <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Barrio / Límites / Referencia</label>
-          <input type="text" id="nuevaZonaNombre" placeholder="Ej: Ezpeleta Oeste - República de Francia" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <input type="text" id="nuevaZonaNombre" placeholder="Ej: Ezpeleta Oeste - República de Francia" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
         </div>
 
         <div>
@@ -592,7 +756,7 @@
 
         <div>
           <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Total de Cuadras de la Zona</label>
-          <input type="number" id="nuevaZonaCuadras" value="120" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold">
+          <input type="number" id="nuevaZonaCuadras" value="120" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-black">
         </div>
       </div>
 
@@ -603,13 +767,13 @@
     </div>
   </div>
 
-  <!-- MODAL: EDITAR DÍAS DE UNA ZONA -->
+  <!-- MODAL: EDITAR SEMANA DE UNA ZONA -->
   <div id="modalEdicion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 max-h-[90vh] flex flex-col border-t-4 border-t-amber-500">
       <div class="flex items-center justify-between border-b pb-3 mb-4">
         <div>
           <h3 class="text-xl font-black uppercase text-slate-900">Editar Zona • <span id="modalTituloSemana">Semana 1</span></h3>
-          <p class="text-xs font-bold text-emerald-700 uppercase">Zona <span id="modalZona">--</span></p>
+          <p class="text-xs font-black text-emerald-800 uppercase">Zona <span id="modalZona">--</span></p>
         </div>
         <button onclick="cerrarModalEdicion()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
       </div>
@@ -623,6 +787,16 @@
         </button>
       </div>
     </div>
+  </div>
+
+  <!-- NOTIFICACIÓN TOAST INSTITUCIONAL -->
+  <div id="toastNotificacion" class="fixed bottom-4 right-4 bg-slate-900 text-white border-l-4 border-emerald-500 px-4 py-3 rounded-xl shadow-2xl z-50 hidden transition-all duration-300 max-w-sm flex items-center gap-3">
+    <div id="toastIcono" class="text-emerald-400 shrink-0">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+    </div>
+    <div class="text-xs font-bold" id="toastMensaje">Aviso del sistema</div>
   </div>
 
   <script>
@@ -648,10 +822,27 @@
     ];
 
     const CONFIG_TURNOS = {
-      "Mañana": { bgBadge: "bg-[#E65757]", textBadge: "bg-rose-50 text-[#C93B3B] border border-rose-200", horario: "Entre las 05 y las 08 hs" },
-      "Tarde": { bgBadge: "bg-[#0F9D58]", textBadge: "bg-emerald-50 text-[#0F9D58] border border-emerald-200", horario: "Entre las 12 y las 15 hs" },
-      "Noche": { bgBadge: "bg-[#00A8CC]", textBadge: "bg-sky-50 text-[#0088A8] border border-sky-200", horario: "Entre las 19 y las 22 hs" }
+      "Mañana": { bgBadge: "bg-[#c93b3b]", textBadge: "bg-rose-50 text-[#c93b3b] border border-rose-200", horario: "Entre las 05 y las 08 hs" },
+      "Tarde": { bgBadge: "bg-emerald-700", textBadge: "bg-emerald-50 text-emerald-800 border border-emerald-200", horario: "Entre las 12 y las 15 hs" },
+      "Noche": { bgBadge: "bg-purple-800", textBadge: "bg-purple-50 text-purple-900 border border-purple-200", horario: "Entre las 19 y las 22 hs" }
     };
+
+    function mostrarToast(mensaje, tipo = "exito") {
+      const toast = document.getElementById("toastNotificacion");
+      const msg = document.getElementById("toastMensaje");
+      msg.innerText = mensaje;
+      
+      if (tipo === "alerta") {
+        toast.className = "fixed bottom-4 right-4 bg-slate-900 text-white border-l-4 border-amber-500 px-4 py-3 rounded-xl shadow-2xl z-50 transition-all duration-300 max-w-sm flex items-center gap-3";
+      } else {
+        toast.className = "fixed bottom-4 right-4 bg-slate-900 text-white border-l-4 border-emerald-500 px-4 py-3 rounded-xl shadow-2xl z-50 transition-all duration-300 max-w-sm flex items-center gap-3";
+      }
+
+      toast.classList.remove("hidden");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 3500);
+    }
 
     function limpiarTexto(txt) {
       if (!txt) return "";
@@ -677,12 +868,84 @@
       return `${year}-${month}-${day}`;
     }
 
+    function buscarZonasEnTiempoReal(texto) {
+      const contenedor = document.getElementById("resultadosBusquedaRapida");
+      const btnLimpiar = document.getElementById("btnLimpiarBuscador");
+      const query = texto.trim().toLowerCase();
+
+      if (!query) {
+        contenedor.classList.add("hidden");
+        btnLimpiar.classList.add("hidden");
+        return;
+      }
+
+      btnLimpiar.classList.remove("hidden");
+      const zonas = obtenerListaZonasUnicas();
+      const resultados = [];
+
+      zonas.forEach(z => {
+        const cat = ZONAS_PREDEFINIDAS.find(p => p.num === z);
+        const reg = baseDatos.find(d => limpiarTexto(d.Zona) === z);
+        const nombre = reg?.Nombre || cat?.nombre || `Zona ${z}`;
+        const turno = reg?.Turno || cat?.turno || "Mañana";
+
+        if (z.toLowerCase().includes(query) || nombre.toLowerCase().includes(query)) {
+          resultados.push({ zona: z, nombre: nombre, turno: turno });
+        }
+      });
+
+      if (resultados.length === 0) {
+        contenedor.innerHTML = `<div class="p-3 text-xs font-bold text-slate-500 text-center">No se encontraron zonas coincidentes</div>`;
+        contenedor.classList.remove("hidden");
+        return;
+      }
+
+      contenedor.innerHTML = resultados.map(r => `
+        <div onclick="seleccionarResultadoBusqueda('${r.zona}')" class="px-3 py-2.5 hover:bg-violet-50 cursor-pointer border-b border-slate-100 flex items-center justify-between transition">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-slate-900 text-white font-black text-xs flex items-center justify-center">
+              ${r.zona}
+            </span>
+            <div>
+              <p class="text-xs font-black text-slate-900">${isNaN(r.zona) ? r.zona : 'Zona ' + r.zona}</p>
+              <p class="text-[11px] font-semibold text-slate-500 truncate max-w-[160px]">${r.nombre}</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${CONFIG_TURNOS[r.turno]?.textBadge || 'bg-slate-100'}">
+            ${r.turno}
+          </span>
+        </div>
+      `).join('');
+
+      contenedor.classList.remove("hidden");
+    }
+
+    function seleccionarResultadoBusqueda(zona) {
+      document.getElementById("resultadosBusquedaRapida").classList.add("hidden");
+      document.getElementById("inputBuscadorZonas").value = "";
+      document.getElementById("btnLimpiarBuscador").classList.add("hidden");
+      cambiarZona(zona);
+    }
+
+    function limpiarBuscadorZonas() {
+      document.getElementById("inputBuscadorZonas").value = "";
+      document.getElementById("resultadosBusquedaRapida").classList.add("hidden");
+      document.getElementById("btnLimpiarBuscador").classList.add("hidden");
+    }
+
+    document.addEventListener("click", function(e) {
+      const searchBox = document.getElementById("inputBuscadorZonas");
+      const searchResults = document.getElementById("resultadosBusquedaRapida");
+      if (!searchBox.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.add("hidden");
+      }
+    });
+
     function alternarDashboardGeneral() {
       modoDashboardActivo = !modoDashboardActivo;
       const seccionDash = document.getElementById("seccionDashboardGeneral");
       const seccionFicha = document.getElementById("seccionFichaTecnica");
       const btnTexto = document.getElementById("btnToggleDashboardTexto");
-      const btn = document.getElementById("btnToggleDashboard");
       const selZona = document.getElementById("contenedorSelectorZona");
       const btnEditar = document.getElementById("btnEditarZonaNav");
 
@@ -690,7 +953,6 @@
         seccionDash.classList.remove("hidden");
         seccionFicha.classList.add("hidden");
         btnTexto.innerText = "Ver Ficha de Zona";
-        btn.classList.replace("bg-teal-700", "bg-teal-900");
         selZona.classList.add("opacity-50");
         btnEditar.classList.add("hidden");
         renderizarDashboardGeneral();
@@ -698,7 +960,6 @@
         seccionDash.classList.add("hidden");
         seccionFicha.classList.remove("hidden");
         btnTexto.innerText = "Dashboard General";
-        btn.classList.replace("bg-teal-900", "bg-teal-700");
         selZona.classList.remove("opacity-50");
         btnEditar.classList.remove("hidden");
         renderizarVista();
@@ -770,10 +1031,12 @@
           } else {
             renderizarVista();
           }
+          if (forzar) mostrarToast("Sincronización exitosa con Google Sheets");
         }
       } catch (err) {
         console.warn("Fallo conectando a Sheet:", err);
         syncText.innerText = "Modo Local";
+        if (forzar) mostrarToast("Conexión en modo local temporal", "alerta");
       }
     }
 
@@ -842,6 +1105,9 @@
       window.location.hash = encodeURIComponent(zonaActual);
       localStorage.setItem("quilmes_ultima_zona", zonaActual);
       
+      const sel = document.getElementById("selectorZona");
+      if (sel) sel.value = zonaActual;
+
       if (modoDashboardActivo) {
         alternarDashboardGeneral();
       } else {
@@ -867,7 +1133,7 @@
 
     function actualizarBotonesSemana() {
       document.querySelectorAll(".tab-btn").forEach(b => {
-        b.classList.remove("bg-white", "bg-emerald-600", "text-white", "text-slate-900", "shadow-sm");
+        b.classList.remove("bg-white", "bg-violet-700", "text-white", "text-slate-900", "shadow-sm");
         b.classList.add("text-slate-600");
       });
 
@@ -875,16 +1141,13 @@
       if (btn) {
         btn.classList.remove("text-slate-600");
         if (vistaActual === 'total') {
-          btn.classList.add("bg-emerald-600", "text-white", "shadow-sm");
+          btn.classList.add("bg-violet-700", "text-white", "shadow-sm");
         } else {
           btn.classList.add("bg-white", "text-slate-900", "shadow-sm");
         }
       }
     }
 
-    // ============================================================
-    // GENERADOR DEL PARTE TÉCNICO OPERATIVO PARA IMPRESIÓN (A4)
-    // ============================================================
     function imprimirParteOperativo() {
       const registrosZona = baseDatos.filter(d => limpiarTexto(d.Zona) === zonaActual);
       const cat = ZONAS_PREDEFINIDAS.find(p => p.num === zonaActual) || { nombre: `Zona ${zonaActual}`, turno: "Mañana", cuadras: 120 };
@@ -895,7 +1158,6 @@
       const anio = fechaSeleccionada.getFullYear();
       const numSemana = vistaActual.replace("semana", "");
 
-      // Metadatos
       document.getElementById("printDocTituloPeríodo").innerText = vistaActual === "total" 
         ? `INFORME MENSUAL • ${nombreMes.toUpperCase()} ${anio}`
         : `PARTE SEMANAL • SEMANA ${numSemana} (${nombreMes.toUpperCase()} ${anio})`;
@@ -932,7 +1194,6 @@
       document.getElementById("printDocFaltantes").innerText = `${totalFaltantes} cuadras`;
       document.getElementById("printDocManzanas").innerText = `~${Math.round(totalFaltantes / 4)} manzanas`;
 
-      // Tabla Operativa
       const cuerpo = document.getElementById("printDocCuerpoTabla");
       cuerpo.innerHTML = "";
 
@@ -965,27 +1226,23 @@
         cuerpo.innerHTML += `
           <tr class="border-b border-slate-200">
             <td class="p-2 border-r border-slate-300 font-black text-slate-900">${etiquetaDia}</td>
-            <td class="p-2 border-r border-slate-300 text-center font-bold text-slate-800">${interno}</td>
+            <td class="p-2 border-r border-slate-300 text-center font-black text-slate-800">${interno}</td>
             <td class="p-2 border-r border-slate-300 text-right font-black text-slate-900">${parseFloat(itemReg.Toneladas || 0).toFixed(1)} Tn</td>
-            <td class="p-2 border-r border-slate-300 text-center font-bold text-slate-700">${cuadrasBase}</td>
-            <td class="p-2 border-r border-slate-300 text-center font-bold ${faltan > 0 ? 'text-amber-800' : 'text-slate-400'}">${faltan > 0 ? faltan : '-'}</td>
-            <td class="p-2 border-r border-slate-300 text-center font-extrabold ${efectDia < 90 ? 'text-amber-800' : 'text-emerald-800'}">${efectDia}%</td>
-            <td class="p-2 text-slate-700">${observaciones}</td>
+            <td class="p-2 border-r border-slate-300 text-center font-black text-slate-700">${cuadrasBase}</td>
+            <td class="p-2 border-r border-slate-300 text-center font-black ${faltan > 0 ? 'text-amber-800' : 'text-slate-400'}">${faltan > 0 ? faltan : '-'}</td>
+            <td class="p-2 border-r border-slate-300 text-center font-black ${efectDia < 90 ? 'text-amber-800' : 'text-emerald-800'}">${efectDia}%</td>
+            <td class="p-2 text-slate-700 font-semibold">${observaciones}</td>
           </tr>
         `;
       });
 
-      // Disparar ventana de impresión formal
       window.print();
     }
 
-    // ============================================================
-    // RENDERIZADOR DEL DASHBOARD GENERAL EN PANTALLA
-    // ============================================================
     function cambiarVistaDashboard(vista) {
       vistaDashboard = vista;
       document.querySelectorAll(".dash-tab-btn").forEach(b => {
-        b.classList.remove("bg-white", "bg-emerald-600", "text-white", "text-slate-900", "shadow-sm");
+        b.classList.remove("bg-white", "bg-violet-700", "text-white", "text-slate-900", "shadow-sm");
         b.classList.add("text-slate-600");
       });
 
@@ -993,7 +1250,7 @@
       if (btn) {
         btn.classList.remove("text-slate-600");
         if (vista === 'total') {
-          btn.classList.add("bg-emerald-600", "text-white", "shadow-sm");
+          btn.classList.add("bg-violet-700", "text-white", "shadow-sm");
         } else {
           btn.classList.add("bg-white", "text-slate-900", "shadow-sm");
         }
@@ -1102,28 +1359,28 @@
       filasTabla.sort((a, b) => b.toneladas - a.toneladas).forEach(f => {
         const conf = CONFIG_TURNOS[f.turno] || CONFIG_TURNOS["Mañana"];
         cuerpoTabla.innerHTML += `
-          <tr onclick="cambiarZona('${f.zona}')" class="hover:bg-teal-50/50 transition-colors">
+          <tr onclick="cambiarZona('${f.zona}')" class="hover:bg-violet-50/40 transition-colors">
             <td class="py-2.5 px-3 font-black text-slate-900">
               <span class="inline-block w-8 h-8 rounded-lg text-white font-black text-center leading-8 text-xs ${conf.bgBadge}">
                 ${f.zona}
               </span>
             </td>
-            <td class="py-2.5 px-3 font-bold text-slate-800">${f.nombre}</td>
+            <td class="py-2.5 px-3 font-black text-slate-800">${f.nombre}</td>
             <td class="py-2.5 px-3">
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${conf.textBadge}">
+              <span class="text-xs font-black px-2 py-0.5 rounded-full ${conf.textBadge}">
                 ${f.turno}
               </span>
             </td>
-            <td class="py-2.5 px-3 text-right font-black text-slate-900">${f.toneladas.toFixed(1)} <span class="text-xs font-normal text-slate-400">Tn</span></td>
-            <td class="py-2.5 px-3 text-center font-bold ${f.faltantes > 0 ? 'text-amber-700 bg-amber-50 rounded px-1' : 'text-slate-400'}">
+            <td class="py-2.5 px-3 text-right font-black text-slate-900">${f.toneladas.toFixed(1)} <span class="text-xs font-bold text-slate-400">Tn</span></td>
+            <td class="py-2.5 px-3 text-center font-black ${f.faltantes > 0 ? 'text-amber-700 bg-amber-50 rounded px-1' : 'text-slate-400'}">
               ${f.faltantes > 0 ? `-${f.faltantes} cdras` : '0'}
             </td>
             <td class="py-2.5 px-3 text-center">
-              <span class="text-xs font-extrabold px-2 py-0.5 rounded ${f.efectividad >= 95 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+              <span class="text-xs font-black px-2 py-0.5 rounded ${f.efectividad >= 95 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
                 ${f.efectividad}%
               </span>
             </td>
-            <td class="py-2.5 px-3 text-xs text-slate-500 truncate max-w-[200px]" title="${f.novedad}">
+            <td class="py-2.5 px-3 text-xs font-semibold text-slate-600 truncate max-w-[220px]" title="${f.novedad}">
               ${f.novedad}
             </td>
           </tr>
@@ -1131,9 +1388,6 @@
       });
     }
 
-    // ============================================================
-    // RENDERIZADOR DE FICHA POR ZONA INDIVIDUAL
-    // ============================================================
     function renderizarVista() {
       let registrosZona = baseDatos.filter(d => limpiarTexto(d.Zona) === zonaActual);
       
@@ -1170,14 +1424,14 @@
         fontSizeClass = "text-sm";
       }
 
-      badgeElem.className = `h-16 min-w-[4rem] max-w-[9rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap ${conf.bgBadge} ${fontSizeClass}`;
+      badgeElem.className = `h-16 min-w-[4.5rem] max-w-[10rem] px-3 rounded-2xl text-white font-black text-center flex items-center justify-center shadow transition-all leading-tight shrink-0 overflow-hidden text-ellipsis whitespace-nowrap ${conf.bgBadge} ${fontSizeClass}`;
 
       document.getElementById("tituloZona").innerText = isNaN(zonaActual) ? zonaActual : `Zona ${zonaActual}`;
-      document.getElementById("subtituloZona").innerText = regBase.Nombre;
+      document.getElementById("subtituloZona").innerText = `${regBase.Nombre} • Secretaría de Ambiente y GIRSU`;
 
       const badgeTurno = document.getElementById("badgeTurno");
       badgeTurno.innerText = `Turno ${regBase.Turno} • ${conf.horario}`;
-      badgeTurno.className = `text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm whitespace-nowrap ${conf.textBadge}`;
+      badgeTurno.className = `text-xs font-black uppercase px-3 py-1 rounded-full shadow-sm whitespace-nowrap ${conf.textBadge}`;
 
       let registrosFiltrados = [];
       const numSemana = vistaActual.replace("semana", "");
@@ -1232,9 +1486,15 @@
           vistaActual === "total" 
             ? String(r.Semana).toLowerCase().includes(item.toLowerCase())
             : String(r.Dia).toLowerCase() === item.toLowerCase()
-        ) || { Toneladas: 0, CuadrasFaltantes: 0 };
+        ) || { Toneladas: 0, CuadrasFaltantes: 0, Novedades: "" };
 
         const faltan = parseInt(itemReg.CuadrasFaltantes) || 0;
+        
+        let camionInterno = "Sin Int.";
+        if (itemReg.Novedades && itemReg.Novedades.includes("Int. ")) {
+          const matchInt = itemReg.Novedades.match(/Int\.\s*([\w\+\-]+)/i);
+          if (matchInt) camionInterno = `Int. ${matchInt[1]}`;
+        }
         
         let etiquetaCalendario = item;
         if (vistaActual !== "total") {
@@ -1243,10 +1503,21 @@
         }
 
         contDias.innerHTML += `
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+          <div class="bg-slate-50 hover:bg-white border border-slate-200 rounded-xl p-3 text-center shadow-xs transition">
             <span class="text-xs font-black uppercase text-slate-500 block">${etiquetaCalendario}</span>
-            <span class="text-xl font-black text-slate-900 block mt-1">${parseFloat(itemReg.Toneladas || 0).toFixed(1)} <span class="text-xs font-normal">Tn</span></span>
-            <span class="text-xs font-bold mt-1 inline-block ${faltan > 0 ? 'text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded' : 'text-emerald-700'}">
+            
+            <!-- PASTILLA DEL CAMIÓN ASIGNADO -->
+            <div class="mt-1">
+              <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${camionInterno !== 'Sin Int.' ? 'bg-violet-100 text-violet-800 border border-violet-200' : 'bg-slate-200 text-slate-600'}">
+                ${camionInterno}
+              </span>
+            </div>
+
+            <!-- TONELAJE -->
+            <span class="text-xl font-black text-slate-900 block mt-1">${parseFloat(itemReg.Toneladas || 0).toFixed(1)} <span class="text-xs font-bold text-slate-500">Tn</span></span>
+            
+            <!-- CUMPLIMIENTO -->
+            <span class="text-xs font-black mt-1 inline-block ${faltan > 0 ? 'text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded' : 'text-emerald-700'}">
               ${faltan > 0 ? `-${faltan} cdras` : '✓ 100%'}
             </span>
           </div>
@@ -1259,9 +1530,6 @@
         : "Sin novedades registradas ni reclamos de cuadras pendientes.";
     }
 
-    // ===================================================
-    // IMPORTACIÓN AUTOMÁTICA DE ODIN CON FECHA
-    // ===================================================
     function abrirModalImportarOdin() {
       registrosOdinParseados = [];
       document.getElementById("contenedorVistaPreviaOdin").classList.add("hidden");
@@ -1289,22 +1557,71 @@
           const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
           if (!json || json.length === 0) {
-            alert("El archivo no contiene filas o está vacío.");
+            mostrarToast("El archivo está vacío o sin registros.", "alerta");
             return;
           }
 
           interpretarColumnasOdin(json);
         } catch (err) {
           console.error("Error leyendo archivo ODIN:", err);
-          alert("Hubo un error al leer el archivo. Asegúrate de que sea un Excel o CSV válido.");
+          mostrarToast("Error al leer el archivo Excel/CSV de ODIN.", "alerta");
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
+    function reprocesarCruceOdinConFecha(nuevaFecha) {
+      if (registrosOdinParseados.length === 0) return;
+      registrosOdinParseados.forEach(r => {
+        r.fecha = nuevaFecha;
+        const cruceAuto = buscarZonaAsignadaAInternoEnPizarra(r.interno, nuevaFecha);
+        if (cruceAuto) {
+          r.zona = cruceAuto;
+          r.origen = "Cruce Automático Pizarra";
+        }
+      });
+      renderizarTablaVistaPreviaOdin();
+    }
+
+    function buscarZonaAsignadaAInternoEnPizarra(internoBuscado, fechaRef) {
+      if (!internoBuscado) return "";
+      const dObj = new Date(fechaRef + "T12:00:00");
+      const semana = calcularSemanaDelMes(dObj);
+      const diaIdx = dObj.getDay();
+      const diaNombre = (diaIdx === 0 || diaIdx === 6) ? "Sábado" : DIAS[diaIdx - 1];
+
+      const intClean = String(internoBuscado).replace(/[^0-9]/g, "");
+
+      // Buscar en los registros de la base de datos para ese día
+      for (const reg of baseDatos) {
+        if (String(reg.Semana).toLowerCase() === semana.toLowerCase() && 
+            String(reg.Dia).toLowerCase() === diaNombre.toLowerCase() &&
+            reg.Novedades) {
+          
+          if (reg.Novedades.includes("Int. ")) {
+            const matchInt = reg.Novedades.match(/Int\.\s*([\w\+\-]+)/i);
+            if (matchInt) {
+              const regIntClean = matchInt[1].replace(/[^0-9]/g, "");
+              if (regIntClean === intClean || matchInt[1].trim() === String(internoBuscado).trim()) {
+                return limpiarTexto(reg.Zona);
+              }
+            }
+          }
+        }
+      }
+
+      // Si no se encontró en las novedades de base de datos, revisar si la zona coincide con el número del camión
+      const zonas = obtenerListaZonasUnicas();
+      if (zonas.includes(intClean)) {
+        return intClean;
+      }
+
+      return "";
+    }
+
     function interpretarColumnasOdin(filas) {
       registrosOdinParseados = [];
-      const fechaIngresada = document.getElementById("odinFechaInput").value || formatearFechaISO(fechaSeleccionada);
+      let fechaIngresada = document.getElementById("odinFechaInput").value || formatearFechaISO(fechaSeleccionada);
 
       filas.forEach((fila, idx) => {
         let interno = "";
@@ -1315,6 +1632,7 @@
           const c = col.toLowerCase();
           const v = String(val).trim();
 
+          // Detección automática de fecha en ticket
           if (c.includes("fecha") || c.includes("date") || c.includes("hora")) {
             if (v && v.length >= 8) {
               const match = v.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
@@ -1323,14 +1641,17 @@
                 const mes = match[2].padStart(2, '0');
                 const anio = match[3].length === 2 ? '20' + match[3] : match[3];
                 fechaFila = `${anio}-${mes}-${dia}`;
+                document.getElementById("odinFechaInput").value = fechaFila;
               }
             }
           }
 
+          // Detección del interno / camión
           if (c.includes("interno") || c.includes("camion") || c.includes("vehiculo") || c.includes("unidad") || c.includes("patente")) {
             if (!interno && v) interno = v;
           }
 
+          // Detección de peso neto
           if (c.includes("neto") || c.includes("peso") || c.includes("kilos") || c.includes("ton") || c.includes("carga")) {
             const numLimpio = parseFloat(String(val).replace(/,/g, '.').replace(/[^0-9.-]+/g, ""));
             if (!isNaN(numLimpio) && numLimpio > 0) {
@@ -1341,22 +1662,28 @@
 
         if (interno && peso > 0) {
           const tnCalculadas = peso > 100 ? (peso / 1000).toFixed(1) : peso.toFixed(1);
+          
+          // Cruce 100% automático con la Pizarra de Flota
+          const zonaAsignadaAuto = buscarZonaAsignadaAInternoEnPizarra(interno, fechaFila);
+
           registrosOdinParseados.push({
             id: idx,
             fecha: fechaFila,
             interno: interno,
             toneladas: parseFloat(tnCalculadas),
-            zona: ""
+            zona: zonaAsignadaAuto,
+            origen: zonaAsignadaAuto ? "Cruce Automático Pizarra" : "Manual Requerido"
           });
         }
       });
 
       if (registrosOdinParseados.length === 0) {
-        alert("No se pudieron detectar columnas de Interno y Peso en el archivo. Verifica los encabezados.");
+        mostrarToast("No se encontraron columnas de Camión y Peso en el archivo.", "alerta");
         return;
       }
 
       renderizarTablaVistaPreviaOdin();
+      mostrarToast(`Se detectaron ${registrosOdinParseados.length} tickets de ODIN.`);
     }
 
     function renderizarTablaVistaPreviaOdin() {
@@ -1364,21 +1691,28 @@
       cuerpo.innerHTML = "";
       const zonasDisponibles = obtenerListaZonasUnicas();
 
+      const conZona = registrosOdinParseados.filter(r => r.zona).length;
+      document.getElementById("resumenTicketsOdin").innerText = `Total: ${registrosOdinParseados.length} pesajes • ${conZona} con zona identificada`;
+
       registrosOdinParseados.forEach((reg, index) => {
         cuerpo.innerHTML += `
-          <tr class="hover:bg-purple-50 transition-colors">
-            <td class="py-2.5 px-3 font-bold text-slate-600 text-xs">${reg.fecha}</td>
-            <td class="py-2.5 px-3 font-black text-slate-900">Interno ${reg.interno}</td>
-            <td class="py-2.5 px-3 font-extrabold text-purple-900">${reg.toneladas} Tn</td>
+          <tr class="hover:bg-purple-50/50 transition-colors">
+            <td class="py-2.5 px-3 font-bold text-slate-600">${reg.fecha}</td>
+            <td class="py-2.5 px-3 font-black text-slate-900">
+              <span class="px-2 py-0.5 rounded bg-violet-100 text-violet-900 font-black border border-violet-200">
+                Int. ${reg.interno}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-black text-right text-slate-900">${reg.toneladas.toFixed(1)} Tn</td>
             <td class="py-2.5 px-3">
-              <select onchange="actualizarZonaAsignadaOdin(${index}, this.value)" class="border border-slate-300 rounded px-2 py-1 text-xs font-bold bg-white w-full max-w-[150px]">
-                <option value="">-- Asignar Zona --</option>
+              <select onchange="actualizarZonaAsignadaOdin(${index}, this.value)" class="border border-slate-300 rounded px-2 py-1 text-xs font-black bg-white w-full max-w-[160px]">
+                <option value="">-- Sin Asignar --</option>
                 ${zonasDisponibles.map(z => `<option value="${z}" ${z === reg.zona ? 'selected' : ''}>Zona ${z}</option>`).join('')}
               </select>
             </td>
             <td class="py-2.5 px-3">
-              <span id="estadoOdin_${index}" class="text-xs font-bold px-2 py-0.5 rounded ${reg.zona ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                ${reg.zona ? 'Listo para imputar' : 'Requiere Zona'}
+              <span id="estadoOdin_${index}" class="text-[11px] font-black px-2 py-0.5 rounded ${reg.zona ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${reg.zona ? '✓ ' + reg.origen : 'Seleccionar zona'}
               </span>
             </td>
           </tr>
@@ -1392,14 +1726,15 @@
     function actualizarZonaAsignadaOdin(index, nuevaZona) {
       if (registrosOdinParseados[index]) {
         registrosOdinParseados[index].zona = nuevaZona;
+        registrosOdinParseados[index].origen = "Asignación Manual";
         const estadoElem = document.getElementById(`estadoOdin_${index}`);
         if (estadoElem) {
           if (nuevaZona) {
-            estadoElem.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
-            estadoElem.innerText = "Listo para imputar";
+            estadoElem.className = "text-[11px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+            estadoElem.innerText = "✓ Asignada a Zona " + nuevaZona;
           } else {
-            estadoElem.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
-            estadoElem.innerText = "Requiere Zona";
+            estadoElem.className = "text-[11px] font-black px-2 py-0.5 rounded bg-amber-100 text-amber-800";
+            estadoElem.innerText = "Seleccionar zona";
           }
         }
       }
@@ -1407,8 +1742,11 @@
 
     async function aplicarDatosOdinEnZonas() {
       const btn = document.getElementById("btnAplicarOdin");
-      btn.innerText = "Imputando pesajes...";
+      const btnTexto = document.getElementById("btnAplicarOdinTexto");
+      btnTexto.innerText = "Imputando automáticamente...";
       btn.disabled = true;
+
+      let imputados = 0;
 
       registrosOdinParseados.forEach(reg => {
         if (reg.zona) {
@@ -1423,11 +1761,13 @@
             String(d.Dia).toLowerCase() === diaNombre.toLowerCase()
           );
 
-          const internoTexto = `Int. ${reg.interno} (${reg.fecha})`;
+          const internoTexto = `Int. ${reg.interno}`;
 
           if (registro) {
             registro.Toneladas = parseFloat((parseFloat(registro.Toneladas || 0) + reg.toneladas).toFixed(1));
-            registro.Novedades = registro.Novedades ? `${registro.Novedades} | ${internoTexto}` : internoTexto;
+            if (!registro.Novedades.includes(internoTexto)) {
+              registro.Novedades = registro.Novedades ? `${internoTexto} | ${registro.Novedades}` : internoTexto;
+            }
           } else {
             const cat = ZONAS_PREDEFINIDAS.find(p => p.num === reg.zona) || { nombre: `Zona ${reg.zona}`, turno: "Mañana", cuadras: 120 };
             baseDatos.push({
@@ -1442,25 +1782,25 @@
               Novedades: internoTexto
             });
           }
+          imputados++;
         }
       });
 
       localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
       renderizarVista();
       if (modoDashboardActivo) renderizarDashboardGeneral();
+      
       await enviarBaseDatosASheet();
 
-      btn.innerText = "¡Pesajes Cargados!";
+      mostrarToast(`¡${imputados} pesajes de ODIN imputados automáticamente!`);
+      btnTexto.innerText = "¡Pesajes Cargados!";
       setTimeout(() => {
         cerrarModalImportarOdin();
-        btn.innerText = "Aplicar Pesajes a las Zonas";
+        btnTexto.innerText = "Aplicar Todos los Pesajes a las Zonas";
         btn.disabled = false;
       }, 1000);
     }
 
-    // ==========================================
-    // PIZARRA DE SALIDA DIARIA CON CALENDARIO
-    // ==========================================
     function abrirModalPizarraFlota() {
       document.getElementById("pizarraFechaInput").value = formatearFechaISO(fechaSeleccionada);
       cambiarFechaPizarra(document.getElementById("pizarraFechaInput").value);
@@ -1509,9 +1849,10 @@
 
         let internoVal = "";
         let observacionVal = reg.Novedades || "";
-        if (observacionVal.startsWith("Int. ")) {
+        if (observacionVal.includes("Int. ")) {
           const partes = observacionVal.split(" | ");
-          internoVal = partes[0].replace("Int. ", "").trim();
+          const intMatch = partes[0].match(/Int\.\s*([\w\+\-]+)/i);
+          if (intMatch) internoVal = intMatch[1];
           observacionVal = partes.slice(1).join(" | ").trim();
         }
 
@@ -1519,25 +1860,25 @@
           <tr class="hover:bg-slate-50 transition-colors">
             <td class="py-2 px-3 font-black text-slate-900">Zona ${z}</td>
             <td class="py-2 px-3">
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${CONFIG_TURNOS[reg.Turno]?.textBadge || 'bg-slate-100'}">
+              <span class="text-xs font-black px-2 py-0.5 rounded-full ${CONFIG_TURNOS[reg.Turno]?.textBadge || 'bg-slate-100'}">
                 ${reg.Turno}
               </span>
-              <span class="text-xs text-slate-500 block mt-0.5 truncate max-w-[140px]">${reg.Nombre}</span>
+              <span class="text-xs font-semibold text-slate-500 block mt-0.5 truncate max-w-[140px]">${reg.Nombre}</span>
             </td>
             <td class="py-2 px-3">
-              <input type="text" placeholder="Ej: 24 o 18+05" id="piz_int_${z}" value="${internoVal}" class="w-24 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center bg-white">
+              <input type="text" placeholder="Ej: 24 o 18+05" id="piz_int_${z}" value="${internoVal}" class="w-24 border border-slate-300 rounded px-2 py-1 text-sm font-black text-center bg-white focus:border-emerald-500 outline-none">
             </td>
             <td class="py-2 px-3">
               <div class="flex items-center gap-1">
-                <input type="number" step="0.1" id="piz_tn_${z}" value="${reg.Toneladas || 0}" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center bg-white">
-                <span class="text-xs text-slate-500 font-bold">Tn</span>
+                <input type="number" step="0.1" id="piz_tn_${z}" value="${reg.Toneladas || 0}" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm font-black text-center bg-white">
+                <span class="text-xs text-slate-500 font-black">Tn</span>
               </div>
             </td>
             <td class="py-2 px-3">
-              <input type="number" id="piz_cdras_${z}" value="${reg.CuadrasFaltantes || 0}" class="w-16 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center bg-white">
+              <input type="number" id="piz_cdras_${z}" value="${reg.CuadrasFaltantes || 0}" class="w-16 border border-slate-300 rounded px-2 py-1 text-sm font-black text-center bg-white">
             </td>
             <td class="py-2 px-3">
-              <input type="text" placeholder="Bacheo, lluvia, relevo..." id="piz_nov_${z}" value="${observacionVal}" class="w-full border border-slate-300 rounded px-2 py-1 text-sm bg-white">
+              <input type="text" placeholder="Bacheo, relevo, corte..." id="piz_nov_${z}" value="${observacionVal}" class="w-full border border-slate-300 rounded px-2 py-1 text-sm font-semibold bg-white">
             </td>
           </tr>
         `;
@@ -1577,8 +1918,10 @@
       localStorage.setItem("quilmes_datos_cache", JSON.stringify(baseDatos));
       renderizarVista();
       if (modoDashboardActivo) renderizarDashboardGeneral();
+      
       await enviarBaseDatosASheet();
 
+      mostrarToast("Pizarra de camiones actualizada con éxito");
       btn.innerText = "¡Guardado con Éxito!";
       setTimeout(() => {
         btn.innerText = "Aplicar y Guardar en Google Sheets";
@@ -1587,7 +1930,6 @@
       }, 1000);
     }
 
-    // MODAL NUEVA ZONA
     function abrirModalNuevaZona() {
       document.getElementById("nuevaZonaNum").value = "";
       document.getElementById("nuevaZonaNombre").value = "";
@@ -1605,7 +1947,7 @@
       const cuadras = parseInt(document.getElementById("nuevaZonaCuadras").value) || 120;
 
       if (!num) {
-        alert("Por favor ingresa un número o código de zona.");
+        mostrarToast("Ingresá un número o nombre para la zona", "alerta");
         return;
       }
 
@@ -1632,13 +1974,13 @@
       cambiarZona(num);
       cerrarModalNuevaZona();
 
+      mostrarToast(`Zona ${num} creada correctamente`);
       enviarBaseDatosASheet();
     }
 
-    // MODAL EDITAR SEMANA DE UNA ZONA
     function abrirModalEdicion() {
       if (vistaActual === "total") {
-        alert("Selecciona una semana específica (Semana 1 a 4) para editar los días.");
+        mostrarToast("Seleccioná una semana (Semana 1 a 4) para editar los días.", "alerta");
         return;
       }
 
@@ -1651,8 +1993,8 @@
 
       DIAS.forEach(dia => {
         let registro = baseDatos.find(d => 
-          limpiarTexto(d.Zona) === zonaActual &&
-          String(d.Semana).toLowerCase().includes(numSemana) &&
+          limpiarTexto(d.Zona) === zonaActual && 
+          String(d.Semana).toLowerCase().includes(numSemana) && 
           String(d.Dia).toLowerCase() === dia.toLowerCase()
         );
 
@@ -1665,15 +2007,15 @@
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-3">
             <span class="w-20 font-black text-slate-800 uppercase text-sm">${dia}</span>
             <div class="flex items-center gap-1">
-              <label class="text-xs text-slate-500 font-bold" title="Peso neto ODIN">Tn Balanza:</label>
-              <input type="number" step="0.1" id="tn_${dia}" value="${registro.Toneladas}" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center">
+              <label class="text-xs text-slate-500 font-bold">Tn Balanza:</label>
+              <input type="number" step="0.1" id="tn_${dia}" value="${registro.Toneladas}" class="w-20 border border-slate-300 rounded px-2 py-1 text-sm font-black text-center">
             </div>
             <div class="flex items-center gap-1">
               <label class="text-xs text-slate-500 font-bold">Cdras Falt.:</label>
-              <input type="number" id="cdras_${dia}" value="${registro.CuadrasFaltantes}" class="w-16 border border-slate-300 rounded px-2 py-1 text-sm font-bold text-center">
+              <input type="number" id="cdras_${dia}" value="${registro.CuadrasFaltantes}" class="w-16 border border-slate-300 rounded px-2 py-1 text-sm font-black text-center">
             </div>
             <div class="flex-1 min-w-[200px]">
-              <input type="text" placeholder="Interno / Novedad balanza..." id="nov_${dia}" value="${registro.Novedades || ''}" class="w-full border border-slate-300 rounded px-2 py-1 text-sm">
+              <input type="text" placeholder="Interno / Novedad balanza..." id="nov_${dia}" value="${registro.Novedades || ''}" class="w-full border border-slate-300 rounded px-2 py-1 text-sm font-semibold">
             </div>
           </div>
         `;
@@ -1699,8 +2041,8 @@
         const nov = document.getElementById(`nov_${dia}`).value;
 
         let reg = baseDatos.find(d => 
-          limpiarTexto(d.Zona) === zonaActual &&
-          String(d.Semana).toLowerCase().includes(numSemana) &&
+          limpiarTexto(d.Zona) === zonaActual && 
+          String(d.Semana).toLowerCase().includes(numSemana) && 
           String(d.Dia).toLowerCase() === dia.toLowerCase()
         );
 
@@ -1717,14 +2059,15 @@
 
       const guardoOk = await enviarBaseDatosASheet();
       if (guardoOk) {
-        btn.innerText = "¡Guardado en Google Sheets!";
+        mostrarToast("Cambios guardados en Google Sheets");
+        btn.innerText = "¡Guardado!";
         setTimeout(() => {
           btn.innerText = "Guardar en Google Sheets";
           btn.disabled = false;
           cerrarModalEdicion();
         }, 1200);
       } else {
-        btn.innerText = "Guardado local";
+        mostrarToast("Guardado localmente", "alerta");
         setTimeout(() => {
           btn.disabled = false;
           btn.innerText = "Guardar en Google Sheets";
@@ -1740,25 +2083,3 @@
           headers: {
             "Content-Type": "text/plain;charset=utf-8"
           },
-          body: JSON.stringify(baseDatos)
-        });
-        document.getElementById("syncText").innerText = "En Línea";
-        return true;
-      } catch (e) {
-        console.error("Error enviando a Apps Script:", e);
-        return false;
-      }
-    }
-
-    window.addEventListener("DOMContentLoaded", () => iniciarAppUltraRapida());
-    window.addEventListener("hashchange", () => {
-      leerHashURL();
-      if (modoDashboardActivo) {
-        renderizarDashboardGeneral();
-      } else {
-        renderizarVista();
-      }
-    });
-  </script>
-</body>
-</html>
